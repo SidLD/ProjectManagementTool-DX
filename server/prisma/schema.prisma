@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(uuid())
+  firstName   String
+  lastName    String
+  password    String
+  gender      Boolean?
+  email       String       @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now())
+  projects    Project[] //sa Project kay pwede an user magkamayada damu na project
+  user_tasks  Task[] //Task ine kay may specific na task tapos role asya lain siya
+  teamMembers TeamMember[]
+  logs        Logs[]
+  comments    Comment[]
+}
+
+model Role {
+  id               String       @id @default(uuid())
+  name             String
+  project          Project      @relation(fields: [projectId], references: [id])
+  projectId        String
+  role_teamMembers TeamMember[]
+  role_permissions Permission[]
+}
+
+model Permission {
+  id               String @id @default(uuid())
+  name             String
+  permission_roles Role[]
+}
+
+model Project {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  manager     User         @relation(fields: [managerId], references: [id])
+  managerId   String
+  startDate   DateTime?
+  endDate     DateTime?
+  progress    Float?       @default(0)
+  tasks       Task[]
+  teamMembers TeamMember[]
+  roles       Role[]
+}
+
+model TeamMember {
+  id        String  @id @default(uuid())
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId String
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String
+  role      Role?   @relation(fields: [roleId], references: [id])
+  roleId    String?
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  task        String?
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String    @default("Not Started") 
+  task_users  User[]
+  project     Project   @relation(fields: [projectId], references: [id])
+  projectId   String
+  logs        Logs[]
+  comments    Comment[]
+}
+
+model Logs {
+  id        String   @id @default(uuid())
+  detail    String?
+  createdAt DateTime @default(now())
+  task      Task?     @relation(fields: [taskId], references: [id])
+  taskId    String?
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+model Comment {
+  id              String    @id @default(uuid())
+  detail          String?
+  task            Task      @relation(fields: [taskId], references: [id])
+  taskId          String
+  user            User      @relation(fields: [userId], references: [id])
+  userId          String
+  childrenComment Comment[] @relation("Comment_Children")
+  parentComment   Comment?  @relation("Comment_Children", fields: [parentId], references: [id])
+  parentId        String?
+}
