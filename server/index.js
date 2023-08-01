@@ -19,10 +19,12 @@ import taskAPI from './api/Task.js'
 import teamMemberAPI from './api/TeamMember.js'
 import permissionAPI from './api/Permission.js'
 import logAPI from './api/Log.js'
+import commentAPI from './api/Comment.js'
 /* Uncomment this to Generate All Permissions - Cid
 import { generateDefaultPermissions } from './repository/PermissionRepository.js'
 generateDefaultPermissions()
 */
+app.use(commentAPI)
 app.use(logAPI)
 app.use(permissionAPI)
 app.use(userAPI)

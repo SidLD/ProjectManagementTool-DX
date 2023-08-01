@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { PageContext } from '../../lib/context'
 import { TaskView } from './view'
 import { useNavigate } from 'react-router-dom'
-import { getAllTasks } from '../../lib/api'
+import { getAllTasks, updateTask } from '../../lib/api'
 import { message } from 'antd'
  
 export const Task = () => {
@@ -16,29 +16,40 @@ export const Task = () => {
         content
       })
     }
-    // const handleDrag = (e: React.DragEvent, widgetType: string) => {
-    //     e.dataTransfer.setData("widgetType", widgetType)
-    // }
-    //Start of Single Task Functions
     const fetchTasks = async () => {
       try {
-        const response = await getAllTasks({status:"COMPLETED"})
+        const response = await getAllTasks({})
         setTasks(response.data?.data)
       } catch (error) {
         console.log(error) 
         showMessage('warning', 'Something Went Wrong')
       }
     }
-    //END of Single Task Functions
+    const handleStatusChange = async (task, updateTo) => {
+      try {
+        const response = await updateTask(task.project.id, task.id, {status:updateTo})
+        if(response.data.ok){
+          showMessage('success', `Set Status to ${updateTo}`)
+          await fetchTasks()
+        }else{
+          showMessage('warning', response.data.message)
+        }
+      } catch (error) {
+        console.log(error)
+        showMessage('warning', error.response.data.message)
+      }
+    }
     useEffect(() => {
       fetchTasks()
       setLoader(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
     const values = {
         loader,
         contextHolder,
         tasks,
-        navigate
+        navigate,
+        handleStatusChange
     }
   return (
       <PageContext.Provider value={values}>

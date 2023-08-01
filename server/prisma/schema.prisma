@@ -92,6 +92,7 @@ model Logs {
 model Comment {
   id              String    @id @default(uuid())
   detail          String?
+  createdAt       DateTime  @default(now())
   task            Task      @relation(fields: [taskId], references: [id])
   taskId          String
   user            User      @relation(fields: [userId], references: [id])

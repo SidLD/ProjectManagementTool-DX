@@ -94,6 +94,12 @@ export const getAllTasks = async (req, res) => {
                 
             }
         })
+        await Promise.all(
+            data.map(async (task) => {
+                task.permissions = await getPermission(userId ,task.project.id)
+                return task
+            })
+        )
         res.status(200).send({ok:true, data})
     } catch (error) {
         console.log(error)

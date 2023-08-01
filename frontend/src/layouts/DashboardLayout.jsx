@@ -10,12 +10,22 @@ import {
 } from '@ant-design/icons';
 import {auth} from "../lib/services.js";
 import Sider from 'antd/es/layout/Sider.js';
-import {useState} from 'react';
+import { useState} from 'react';
+import { DarkModeSwitch } from 'react-toggle-dark-mode';
+
+import {DndProvider} from 'react-dnd'
+import {HTML5Backend} from 'react-dnd-html5-backend'
 export const DashboardLayout = () => {
     const user = auth.getUserInfo()
     const navigate = useNavigate()
     const [collapsed, setCollapsed] = useState(false);
     const onCollapse = () => setCollapsed(!collapsed)
+    const [isDarkMode, setDarkMode] = useState(false);
+
+
+    const toggleDarkMode = (checked) => {
+      setDarkMode(checked);
+    };
     const items = [
         {
             key: "dashboard",
@@ -37,14 +47,12 @@ export const DashboardLayout = () => {
     const onClick = (e) => {
         navigate(e.key)
     }
-    const tooglDarkMode = () => {
-        document.documentElement.classList.remove('dark')
-    }
 
     return (
         <div className='h-screen dark:bg-black bg-slate-50'>
 
             <Layout className='dark bg-slate-50'>
+                <div className='hidden md:block'>
                 <Sider collapsed={collapsed}
                     onCollapse={onCollapse}>
                     <div className='bg-slate-50 text-black p-2 text-center text-lg'>
@@ -56,7 +64,7 @@ export const DashboardLayout = () => {
                             user.lastName
                         }</h1>
                     </div>
-                    <Menu className='bg-slate-50 text-black h-full flex-row justify-center content-center items-center'
+                    <Menu className=' bg-slate-50 text-black h-full flex-row justify-center content-center items-center'
                         onClick={onClick}
                         mode='inline'
                         defaultSelectedKeys={
@@ -66,6 +74,7 @@ export const DashboardLayout = () => {
                             items.map((item) => ({key: item.key, icon: item.icon, label: item.label}))
                         }/>
                 </Sider>
+                </div>
                 <Layout>
                     <Header className='flex justify-between items-center  text-black bg-slate-50'>
                         <Tooltip className="hidden md:block" placement='leftBottom'
@@ -79,6 +88,13 @@ export const DashboardLayout = () => {
                             } </Button>
                         </Tooltip>
                         
+                        <DarkModeSwitch
+                                style={{ marginBottom: '2rem' }}
+                                checked={isDarkMode}
+                                onChange={toggleDarkMode}
+                                size={20}
+                                />  
+
                         {/* <Button onClick={tooglDarkMode} className='dark:bg-slate-950'>Dark Mode</Button> */}
                         <h1 className='uppercase text-sm mr-2 bold sm:text-2xl'>Project Management Tool</h1>
                         <Tooltip placement='rightTop' title='Logout' color='blue'>
@@ -90,7 +106,9 @@ export const DashboardLayout = () => {
                         </Tooltip>
                     </Header>
                     <Content className='m-0 p-0 bg-slate-200 h-screen rounded-xl '>
-                        <Outlet/>
+                        <DndProvider backend={HTML5Backend}>
+                            <Outlet/>
+                        </DndProvider>
                     </Content>
                 </Layout>
             </Layout>

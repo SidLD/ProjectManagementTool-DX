@@ -4,7 +4,7 @@ import { ProjectView } from './view'
 import { useNavigate, useParams } from 'react-router-dom'
 import { message } from 'antd'
 import moment from "moment";
-import { createTasks, createTeamMember, deleteProject, getPermission, getProjects, getRoles, getTasks, getTeamMembers } from '../../lib/api'
+import { createTasks, createTeamMember, deleteProject, getPermission, getProjects, getRoles, getTasks, getTeamMembers, updateTask } from '../../lib/api'
 
 export const Project = () => {
     const {projectId} = useParams()
@@ -17,12 +17,13 @@ export const Project = () => {
     const [roles, setRoles] = useState([])
     const [team, setTeam] = useState([])
     const [tasks, setTasks] = useState([])
-    const fetchTasks = async () => {
+    const fetchTasks = async (status) => {
       try {
-        const response = await getTasks(projectId, {})
+        const response = await getTasks(projectId, {status: status})
         setTasks(response.data.data)
       } catch (error) {
         console.log(error)
+        return []
       }
     }
     const fetchTeam = async () => {
@@ -162,6 +163,20 @@ export const Project = () => {
         content,
       })
     }
+    const handleStatusChange = async (task, updateTo) => {
+      try {
+        const response = await updateTask(task.project.id, task.id, {status:updateTo})
+        if(response.data.ok){
+          showMessage('success', `Set Status to ${updateTo}`)
+          await fetchTasks()
+        }else{
+          showMessage('warning', response.data.message)
+        }
+      } catch (error) {
+        console.log(error)
+        showMessage('warning', error.response.data.message)
+      }
+    }
     useLayoutEffect(() => {
       fetchProject()
       getUserPermission()
@@ -192,6 +207,8 @@ export const Project = () => {
       showMessage,
       addTeamMember,
       team,
+      handleStatusChange,
+      projectId,
       tasks
     }
   return (

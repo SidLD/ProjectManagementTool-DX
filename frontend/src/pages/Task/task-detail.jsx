@@ -7,6 +7,7 @@ import { TaskStatusColor, formatDate } from "../../lib/helper"
 import {
   CaretRightOutlined,
 } from '@ant-design/icons';
+import { CommentBox } from "../../components/CommentBox"
 
 export const TaskDetail = () => {
     const {projectId, taskId} = useParams()
@@ -115,6 +116,7 @@ export const TaskDetail = () => {
         <div className="">
             <Button className="bg-red-500 text-slate-50 hover:scale-110" onClick={handleDeleteTask}>Delete Task</Button>
         </div>
+        {!loader && <CommentBox data={task}/>}
       </div>
       <div className="p-2 bg-slate-700 h-full rounded-xl">
         

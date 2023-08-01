@@ -3,9 +3,10 @@ import { LoginView } from './view.jsx'
 import { message } from 'antd'
 import { login } from '../../lib/api.js'
 import { auth } from '../../lib/services.js'
+import { useNavigate } from 'react-router-dom'
 export const Login = () => {
     const [messageAPI, contextHolder] = message.useMessage()
-
+    const navigate = useNavigate()
     const handleSubmitLogin = async (e) => {
         try {
             const payload = {
@@ -27,7 +28,8 @@ export const Login = () => {
     }
     const values = {
         contextHolder,
-        handleSubmitLogin
+        handleSubmitLogin,
+        navigate
     }
     return (
         <PageContext.Provider value={values}>

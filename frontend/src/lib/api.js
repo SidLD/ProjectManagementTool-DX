@@ -274,3 +274,34 @@ export const getLogs = (data) => {
   });
 };
 // END OF LOGS API
+
+// START OF Comment API
+export const createComment = (taskId, data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/task/${taskId}/comment`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+export const getComment = (taskId,data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/task/${taskId}/comment`, 
+        {
+          params: data,
+          ...dataHeader()
+        })
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+// END OF LOGS API

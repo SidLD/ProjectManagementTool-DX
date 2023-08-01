@@ -1,24 +1,42 @@
 import { useContext } from 'react'
 import { PageContext } from '../../lib/context'
 // import { TaskList } from '../../components/TaskList'
-import { DndProvider } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
-import {DnDComponents} from './components/DnDComponents'
+import { TaskList } from '../../components/TaskList'
+import { Button, Dropdown } from 'antd'
 
 export const TaskView = () => {
-    const {loader, tasks, contextHolder} = useContext(PageContext)
-    if(!loader){
-      console.log(tasks)
+    const {loader, contextHolder} = useContext(PageContext)
+  const sortItems = [
+    {
+      key: 'firstName',
+      label: 'First Name'
+    },
+    {
+      key: 'status',
+      label: 'Status'
     }
+  ]
   return (
     <>
     {contextHolder}
     <div>
-      <div>Options</div>
-      <DndProvider backend={HTML5Backend}>
-        <DnDComponents />
-      </DndProvider>
-    </div>
+      <div className='h-5 my-2 border-2 rounded-2xl border-black'>
+        <Dropdown
+          menu={{
+            sortItems
+          }}
+        >
+          <Button onClick={(e) => e.preventDefault()}>
+              Sort
+          </Button>
+        </Dropdown>
+      </div>
+        {!loader && <div className='flex' >
+          <TaskList title={"TO DO"}/>
+          <TaskList title={"IN PROGRESS"}/>
+          <TaskList title={"COMPLETED"}/>
+        </div>}
+    </div>  
     </>
   )
 }

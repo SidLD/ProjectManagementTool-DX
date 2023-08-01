@@ -1,6 +1,5 @@
 import { useContext, useState } from 'react'
 import { PageContext } from '../../lib/context'
-import {TaskList} from '../../components/TaskList'
 import Search from 'antd/es/input/Search'
 import { Button, DatePicker, Drawer, Form, Input, Modal, Progress, Select, Table, Tooltip } from 'antd'
 import { SearchBar } from './components/SearchBar'
@@ -10,18 +9,16 @@ import { CustomeDate } from '../../components/CustomeDate'
 import {
   DeleteOutlined
 } from '@ant-design/icons';
+import { TaskList } from '../../components/TaskList'
 
 export const ProjectView = () => {
   const {contextHolder, loader, project, showModal, handleCancel, isModalOpen, handleSubmitTask,
           isModalOpenDelete, showDeleteModal, handleDeleteCancel, handleDeleteProject, disabledDate,
           open, showDrawer, onClose, roles, team,
-          tasks} = useContext(PageContext)
+          } = useContext(PageContext)
   
   const [selectedUserForTask, setSelectedUserForTask] = useState([])
   const { RangePicker } = DatePicker;
-  const filterData = (data = [], status) => {
-    return data.filter(temp => temp.status === status)
-  }
   const removeUserForTask = (id) => {
     setSelectedUserForTask(selectedUserForTask.map(user => user.user.id !== id))
   }
@@ -57,43 +54,40 @@ export const ProjectView = () => {
   return (
     !loader && 
       <div >{contextHolder}
-        <div className='flex h-full m-2'>
-          <div className='w-1/3 text-left bg-slate-50 shadow-md p-2 rounded-3xl'> 
-            <div className='h-1/4'>
-              <h2>Title: {project.name}</h2>
-              <p>Description:</p>
-              <p className='text-justify'>{project.description}</p>
-              <p>Date:</p>
-              <div className='flex justify-evenly '>
-                <CustomeDate borderColor="border-blue-800" title="Start Date" color="text-blue-500" date={project.startDate} />
-                <CustomeDate borderColor="border-yellow-500" title="Due Date" color="text-yellow-500" date={project.endDate}/>
-              </div>
-              <Tooltip title={`${project.progress} %`} placement="right">
-                <p className='mt-2'>Progress</p>
-                <Progress percent={project.progress}/>
-              </Tooltip>
-            </div>
-          </div>
-          <div className='w-2/3'>
-            <div className='m-2 flex justify-between items-center'>
+        <div className=''>
+          <div className='sm:hidden bottom-200 left-2  flex justify-between items-center'>
               <Search />
               <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-blue-500'  onClick={showModal}>Create Task</Button>
               <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Setting</Button>
+          </div>
+          <div className=''> 
+            <div className=''>
+              <h2>Title: {project.name}</h2>
+              <p>Description:</p>
+              <p className=''>{project.description}</p>
+              <p>Date:</p>
+              <div className=''>
+                <CustomeDate borderColor="border-blue-800" title="Start Date" color="text-blue-500" date={project.startDate} />
+                <CustomeDate borderColor="border-yellow-500" title="Due Date" color="text-yellow-500" date={project.endDate}/>
+              </div>
+              <Tooltip className='flex justify-center items-center' title={`${project.progress} %`} placement="right">
+                <p className='text-left my-2'>Progress</p>
+                <Progress className='w-3/4 ml-2 my-auto' percent={project.progress}/>
+              </Tooltip>
             </div>
-            <div className='flex justify-center'>
-              <div className='w-1/3 text-center'>
-                  <h2 className='uppercase text-center text-slate-50 font-bold rounded-full bg-blue-500 mx-2'>To Do</h2>
-                <TaskList data={filterData(tasks, "TO DO")} />
-              </div>
-              <div className='w-1/3 text-center'>
-                <h2 className='uppercase text-center text-slate-50 font-bold rounded-full bg-yellow-500 mx-2'>In Progress</h2>
-                <TaskList data={filterData(tasks, "IN PROGRESS")} />
-              </div>
-              <div className='w-1/3 text-center '>
-              <h2 className='uppercase text-center text-slate-50 font-bold rounded-full bg-green-500 mx-2'>Completed</h2>
-                <TaskList data={filterData(tasks, "COMPLETED")} />
-              </div>
-            </div>
+          </div>
+          <div className=''>
+            <div className='hidden bottom-200 left-2  sm:flex justify-between items-center'>
+              <Search />
+              <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-blue-500'  onClick={showModal}>Create Task</Button>
+              <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Setting</Button>
+          </div>
+  
+        {!loader && <div className='flex' >
+          <TaskList title={"TO DO"}/>
+          <TaskList title={"IN PROGRESS"}/>
+          <TaskList title={"COMPLETED"}/>
+        </div>}
           </div>
         </div>
       <Modal title="Create Task" open={isModalOpen} onCancel={handleCancel} footer={null}>
