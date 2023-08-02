@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react'
 import { PageContext } from '../../lib/context'
 import Search from 'antd/es/input/Search'
-import { Button, DatePicker, Drawer, Form, Input, Modal, Progress, Select, Table, Tooltip } from 'antd'
+import { Button, Checkbox, Col, DatePicker, Drawer, Form, Input, Modal, Progress, Row, Select, Table, Tooltip } from 'antd'
 import { SearchBar } from './components/SearchBar'
 import { RoleTable } from './components/RoleTable'
 import { UserTable } from './components/UserTable'
@@ -14,7 +14,9 @@ import { TaskList } from '../../components/TaskList'
 export const ProjectView = () => {
   const {contextHolder, loader, project, showModal, handleCancel, isModalOpen, handleSubmitTask,
           isModalOpenDelete, showDeleteModal, handleDeleteCancel, handleDeleteProject, disabledDate,
-          open, showDrawer, onClose, roles, team,
+          open, showDrawer, onClose, roles, team, 
+          roleInput, onChangePermission, showRoleModal, handleOkRoleModal, handleShowRoleModal,
+          handleCancelRoleModal, allPermission
           } = useContext(PageContext)
   
   const [selectedUserForTask, setSelectedUserForTask] = useState([])
@@ -54,40 +56,48 @@ export const ProjectView = () => {
   return (
     !loader && 
       <div >{contextHolder}
-        <div className=''>
-          <div className='sm:hidden bottom-200 left-2  flex justify-between items-center'>
+        <div className='xl:flex xl:w-full xl:h-full'>
+          <div className='sm:hidden bottom-200 left-2  m-2 flex justify-between items-center'>
               <Search />
               <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-blue-500'  onClick={showModal}>Create Task</Button>
               <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Setting</Button>
           </div>
-          <div className=''> 
+          <div className='xl:w-1/3 font-poppins p-2'> 
             <div className=''>
               <h2>Title: {project.name}</h2>
               <p>Description:</p>
               <p className=''>{project.description}</p>
               <p>Date:</p>
-              <div className=''>
+              <div className='flex w-full justify-between'>
                 <CustomeDate borderColor="border-blue-800" title="Start Date" color="text-blue-500" date={project.startDate} />
                 <CustomeDate borderColor="border-yellow-500" title="Due Date" color="text-yellow-500" date={project.endDate}/>
               </div>
-              <Tooltip className='flex justify-center items-center' title={`${project.progress} %`} placement="right">
-                <p className='text-left my-2'>Progress</p>
+              <Tooltip className='flex my-4 justify-center items-center' title={`${project.progress} %`} placement="right">
+                <p className='text-left '>Progress</p>
                 <Progress className='w-3/4 ml-2 my-auto' percent={project.progress}/>
               </Tooltip>
             </div>
           </div>
-          <div className=''>
+          <div className='m-2 xl:w-2/3 xl:h-full'>
             <div className='hidden bottom-200 left-2  sm:flex justify-between items-center'>
               <Search />
               <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-blue-500'  onClick={showModal}>Create Task</Button>
               <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Setting</Button>
           </div>
-  
-        {!loader && <div className='flex' >
-          <TaskList title={"TO DO"}/>
-          <TaskList title={"IN PROGRESS"}/>
-          <TaskList title={"COMPLETED"}/>
-        </div>}
+          {!loader && <div className=' md:grid-cols-3 md:mt-2 grid grid-cols-1 gap-3 rounded-lg font-poppins h-fit' >
+            <div className='bg-white rounded-t-lg'>
+              <h3 className='text-center font-bold mt-2'>To Do Tasks</h3>
+              <TaskList title={"TO DO"}/>
+            </div>
+            <div className='bg-white rounded-t-lg'>
+              <h3 className='text-center font-bold mt-2'>In Progress Tasks</h3>
+              <TaskList title={"IN PROGRESS"}/>
+            </div>
+            <div className='bg-white rounded-t-lg'>
+              <h3 className='text-center font-bold mt-2'>Complete Tasks</h3>
+              <TaskList title={"COMPLETED"}/>
+            </div>
+          </div>}
           </div>
         </div>
       <Modal title="Create Task" open={isModalOpen} onCancel={handleCancel} footer={null}>
@@ -122,10 +132,10 @@ export const ProjectView = () => {
                 {!loader && <Select
                   style={{width:200}}
                   onSelect={handleSelectUserForCreateTaskSelect}
-                  options={team.map(item => (
+                  options={team?.map(item => (
                     {
                         value: item.user.id,
-                        label: `${item.user.firstName} ${item.user.lastName} - ${item.role.name}`
+                        label: `${item.user.firstName} ${item.user.lastName} - ${item?.role?.name}`
                     }
                 ))}
                 />}
@@ -150,6 +160,34 @@ export const ProjectView = () => {
           <Button  htmlType='submit' danger type='primary'>Confirm</Button>
         </Form>
       </Modal>
+      <Modal
+              title="Create Role"
+              open={showRoleModal}
+              onOk={handleOkRoleModal}
+              onCancel={handleCancelRoleModal}
+              okType="default"
+              okText="Add Role"
+            >
+              <div>  
+                  <input className="w-full h-8 text-lg mb-2 border-blue-200 border-2 rounded-md" placeholder="Role Name" ref={roleInput}/>
+                <Checkbox.Group
+                      style={{
+                        width: '100%',
+                      }}
+                      onChange={onChangePermission}
+                    >
+                      <Row>
+                        {allPermission?.map((temp, index) =>
+                          (
+                            <Col span={8} key={index}>
+                              <Checkbox value={temp.id}>{temp.name}</Checkbox>
+                            </Col>
+                          )
+                        )}
+                      </Row>
+                    </Checkbox.Group>
+              </div> 
+      </Modal>
       <Drawer title="Project Setting" width={800} placement="right" onClose={onClose} open={open}>
           <div className='flex justify-between mb-2'>
           <SearchBar />
@@ -158,7 +196,7 @@ export const ProjectView = () => {
         {!loader && <UserTable data={team} />}
         <h2 className='text-center uppercase'>Roles</h2>
         
-        <Button className='float-right '>Create Role</Button>
+        <Button className='float-right' onClick={handleShowRoleModal}>Create Role</Button>
         {!loader && <RoleTable data={roles} />}
         <Tooltip title="This Will Delete All the tasks and projet" color='red'>
           <Button className='w-full flex items-center justify-center' type='primary' danger onClick={showDeleteModal}> <DeleteOutlined /> Delete Project</Button>

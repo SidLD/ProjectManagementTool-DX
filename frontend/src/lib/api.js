@@ -96,6 +96,49 @@ export const getRoles = (data) => {
       });
   });
 }
+
+export const createRole = (projectId, data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/project/${projectId}/role`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+export const updateRole = (projectId, roleId, data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/role/${roleId}`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const deleteRole = (projectId, data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .delete(`${import.meta.env.VITE_API_URL}/project/${projectId}/role`, 
+        {
+          data, 
+          ...dataHeader()
+        }
+      )
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
 // END OF ROLE API
 
 // START OF PROJECT API
@@ -288,7 +331,19 @@ export const createComment = (taskId, data) => {
       });
   });
 };
-export const getComment = (taskId,data) => {
+export const replyComment = (taskId, data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/task/${taskId}/comment/reply`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+export const getComment = (taskId, data) => {
   return new Promise((resolve, reject) => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/task/${taskId}/comment`, 

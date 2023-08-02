@@ -94,13 +94,17 @@ export const getAllTasks = async (req, res) => {
                 
             }
         })
-        await Promise.all(
+        const ifAccessDatas = await Promise.all(
             data.map(async (task) => {
-                task.permissions = await getPermission(userId ,task.project.id)
-                return task
+                const tempPermissions = await getPermission(userId ,task.project.id)
+                console.log(tempPermissions.includes("VIEW-TASK"))
+                if(tempPermissions.includes("VIEW-TASK")){
+                    task.permissions = tempPermissions
+                    return task
+                }
             })
         )
-        res.status(200).send({ok:true, data})
+        res.status(200).send({ok:true, ifAccessDatas})
     } catch (error) {
         console.log(error)
         res.status(400).send({ok:false, message: error.message})
@@ -190,6 +194,16 @@ export const deleteTask = async (req, res) => {
         const params = req.body
         const permissions = await getPermission(userId, projectId);
         if(permissions.includes("DELETE-TASK")){
+            await prisma.comment.deleteMany({
+                where: {
+                    taskId: params.id
+                }
+            })
+            await prisma.logs.deleteMany({
+                where: {
+                    taskId: params.id
+                }
+            })
             const data = await prisma.task.delete({
                 where: {
                     projectId: projectId,

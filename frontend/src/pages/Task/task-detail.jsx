@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { deleteTask, getLogs, getTasks, updateTask } from "../../lib/api"
-import { Button, Tooltip, message } from "antd"
+import { Button, Form, Modal, Tooltip, message } from "antd"
 import { CustomeDate } from "../../components/CustomeDate"
 import { TaskStatusColor, formatDate } from "../../lib/helper"
 import {
   CaretRightOutlined,
 } from '@ant-design/icons';
 import { CommentBox } from "../../components/CommentBox"
+import { PageContext } from "../../lib/context"
 
 export const TaskDetail = () => {
     const {projectId, taskId} = useParams()
@@ -15,7 +16,7 @@ export const TaskDetail = () => {
     const [logs, setLogs] = useState([])
     const [loader, setLoader] = useState(true)
     const [showLogs, setShowLogs] = useState(true) 
-    
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [messageAPI, contextHolder] = message.useMessage()
     const navigate = useNavigate()
     const showMessage = (type, content) => {
@@ -91,6 +92,12 @@ export const TaskDetail = () => {
           console.log(error)
         }
       }
+      const handleShowDeleteModal = () => {
+        setShowDeleteModal(true);
+      };
+      const handleDeleteCancel = () => {
+        setShowDeleteModal(false)
+      }
       useEffect(() => {
         fetchTask()
         fetchLogs()
@@ -99,8 +106,8 @@ export const TaskDetail = () => {
   return (
     <>
     {contextHolder}
-    {!loader && <div className="p-2">
-      <div className="">
+    {!loader && <div className="p-2 lg:flex h-screen">
+      <div className="lg:w-1/2 lg:mr-2">
           <Tooltip className="float-right" color={TaskStatusColor(task).color} title={TaskStatusColor(task).text}>
             <Button className={`${TaskStatusColor(task).backGroundColor} flex items-center`}
               onClick={handleStatusChange}
@@ -114,16 +121,17 @@ export const TaskDetail = () => {
           <CustomeDate borderColor="border-yellow-500" title="Due Date" color="text-yellow-500" date={task.endDate}/>
         </div>
         <div className="">
-            <Button className="bg-red-500 text-slate-50 hover:scale-110" onClick={handleDeleteTask}>Delete Task</Button>
+            <Button className="bg-red-500 text-slate-50 hover:scale-110" onClick={handleShowDeleteModal}>Delete Task</Button>
         </div>
+        <PageContext.Provider value={{task}}>
         {!loader && <CommentBox data={task}/>}
+        </PageContext.Provider>
       </div>
-      <div className="p-2 bg-slate-700 h-full rounded-xl">
-        
+      <div className="lg:w-1/2 p-2 bg-slate-700 h-4/5 rounded-xl overflow-hidden">       
       <Button className="bg-blue-500 text-white " 
           onClick={() => setShowLogs(!showLogs)}
-        >Logs</Button>
-        <div className={showLogs ? 'block': 'hidden'}>
+        >History</Button>
+        <div className={`${showLogs ? 'block': 'hidden'} overflow-y-scroll h-full`}>
           {logs?.map((log, index) => {
             const date = formatDate(log.createdAt);
             return <div key={index} className="flex justify-between items-center my-2">
@@ -133,8 +141,14 @@ export const TaskDetail = () => {
           })}
         </div>
       </div>
-      
     </div>}
+    <Modal title="Delete Task" open={showDeleteModal} onCancel={handleDeleteCancel}
+        footer={null}>
+        <Form onFinish={handleDeleteTask}>
+        <p className='text-red-700 mb-2'>Are you sure to delete this Task?</p>
+          <Button  htmlType='submit' danger type='primary'>Confirm</Button>
+        </Form>
+      </Modal>
     </>
   )
 }

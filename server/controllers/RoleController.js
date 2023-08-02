@@ -35,30 +35,27 @@ export const createRole = async (req, res) => {
     try {
         const projectId = req.params.projectId
         const params = req.body
-        const permissions = await getPermission(req.user.id)
-        if(permissions.includes('VIEW-ROLE')){
-            const data = await Promise.all(
-                params.map(async (newRole) => {
-                    console.log(newRole)
-                    return await prisma.role.create({
-                        data: {
-                            name: newRole.name.toUpperCase(),
-                            project: {
-                                connect: {
-                                    id: projectId
-                                }
-                            },
-                            role_permissions:{
-                                connect: newRole?.permissions?.map(permission => ({id: permission}))
-                            },
+        const permissions = await getPermission(req.user.id, projectId)
+        console.log(permissions)
+        if(permissions.includes('ADD-ROLE')){
+            const data =  await prisma.role.create({
+                data: {
+                    name: params.name.toUpperCase(),
+                    project: {
+                        connect: {
+                            id: projectId
                         }
-                    })
-                })
-            )
-            res.status(200).send({ok:true, projectId, data})
+                    },
+                    role_permissions:{
+                        connect: params?.role_permissions?.map(permission => ({id: permission}))
+                    },
+                }
+            })
+            res.status(200).send({ok:true, data})
         }else{
             res.status(400).send({ok:false, message: "Access Denied"})
         }
+
     } catch (error) {
         console.log(error)
         res.status(400).send({ok:false,message: "Data Required"})
@@ -75,18 +72,21 @@ export const updateRole = async (req, res) => {
             const data = await prisma.role.update({
                 where: {
                     id:roleId,
-                    project:{
-                        id: projectId
-                    }
+                    projectId: projectId
                 },
-                data: params
+                data: {
+                    name: params?.name,
+                    role_permissions: {
+                        connect: params.permissions.map(p => ({id:p})) || []
+                    }
+                }
             })
             res.status(200).send({ok: true, data})
         }else{
             res.status(400).send({ok:false, message: "Access Denied"})
         }
     } catch (error) {
-        console.log(error.message)
+        console.log(error)
         res.status(400).send({ok:false, message: error.message})
     }
 }
@@ -96,6 +96,17 @@ export const deleteRole = async (req, res) => {
         const params = req.body
         const permissions = await getPermission(req.user.id)
         if(permissions.includes("DELETE-ROLE")){
+            const removeUser = await prisma.teamMember.updateMany({
+                where: {
+                    AND: [
+                        {roleId: params.roleId},
+                        {projectId: projectId}
+                    ]
+                },
+                data: {
+                    roleId: null
+                }
+            }) 
             const data = await prisma.role.delete({
                 where: {
                     id:params.roleId,
@@ -104,7 +115,7 @@ export const deleteRole = async (req, res) => {
                     }
                 },
             })
-            res.status(200).send({ok:true, data})
+            res.status(200).send({ok:true, data, removeUser})
         }else{
             res.status(400).send({ok:false, message: "Access Denied"})
         }

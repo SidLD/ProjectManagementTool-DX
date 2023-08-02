@@ -1,10 +1,10 @@
-import { useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { PageContext } from '../../lib/context'
 import { ProjectView } from './view'
 import { useNavigate, useParams } from 'react-router-dom'
 import { message } from 'antd'
 import moment from "moment";
-import { createTasks, createTeamMember, deleteProject, getPermission, getProjects, getRoles, getTasks, getTeamMembers, updateTask } from '../../lib/api'
+import { createRole, createTasks, createTeamMember, deleteProject, deleteRole, getAllPermission, getPermission, getProjects, getRoles, getTasks, getTeamMembers, updateRole, updateTask } from '../../lib/api'
 
 export const Project = () => {
     const {projectId} = useParams()
@@ -17,6 +17,11 @@ export const Project = () => {
     const [roles, setRoles] = useState([])
     const [team, setTeam] = useState([])
     const [tasks, setTasks] = useState([])
+    const roleInput = useRef()
+    const [showRoleModal, setShowRoleModal] = useState()
+    const [allPermission, setAllPermission] = useState([])
+    
+  const [selectedPermission, setSelectedPermission] = useState([])
     const fetchTasks = async (status) => {
       try {
         const response = await getTasks(projectId, {status: status})
@@ -177,10 +182,84 @@ export const Project = () => {
         showMessage('warning', error.response.data.message)
       }
     }
+    //Edit Role & Member Role Functions
+    const handleRemoveRole = async (data) => {
+      try {
+        const payload = {
+          roleId: data.id
+        }
+        const response = await deleteRole(projectId, payload)
+        if(response.data.ok){
+          showMessage('success', 'Success')
+          await fetchRoles()
+        }
+      } catch (error) {
+        console.log(error)
+        showMessage('warning', error.response.data.message)
+      }
+    }
+    const handleUpdateRole = async (data) => {
+      try {
+        const payload = {
+          name: data.newName,
+          permissions: data.newPermissions
+        }
+        const response = await updateRole(projectId,data.roleId.id, payload)
+        if(response.data.ok){
+          showMessage('success', 'Success')
+          await fetchRoles()
+        }
+      } catch (error) {
+        console.log(error)
+        showMessage('warning', error.response.data.message)
+      }
+    }
+    const onChangePermission = (e) => {
+      setSelectedPermission(e)
+    }
+    const handleOkRoleModal = async () => {
+      if(roleInput.current.value.trim() === "" || selectedPermission.length < 1){
+        showMessage('warning', 'Please Input Data')
+      }else{
+        const payload = {
+          name : roleInput.current.value,
+          role_permissions: selectedPermission
+        }
+        try {
+         const response = await createRole(projectId, payload)
+          if(response.data.ok){
+            showMessage('success', "Success")
+            setShowRoleModal(false)
+            setSelectedPermission([])
+            await fetchRoles()
+          }else{
+            showMessage('warning', 'Something Went Wrong')
+          }
+        } catch (error) {
+        showMessage('warning', error.response.data.message)
+        }
+      }
+    };
+    const handleShowRoleModal  = () => {
+      setShowRoleModal(true)
+    }
+    const handleCancelRoleModal = () => {
+      setShowRoleModal(false)
+    }
+
+    const fetchAllPermission = async () => {
+      try {
+        const response = await getAllPermission()
+        setAllPermission(response.data.data)
+      } catch (error) {
+        setAllPermission([])
+      }
+    }
     useLayoutEffect(() => {
       fetchProject()
       getUserPermission()
       fetchRoles()
+      fetchAllPermission()
       fetchTeam()
       fetchTasks()
       setLoader(false)
@@ -209,7 +288,16 @@ export const Project = () => {
       team,
       handleStatusChange,
       projectId,
-      tasks
+      tasks,
+      handleUpdateRole,
+      handleRemoveRole,
+      onChangePermission,
+      roleInput,
+      showRoleModal,
+      handleOkRoleModal,
+      handleShowRoleModal,
+      handleCancelRoleModal,
+      allPermission
     }
   return (
     <PageContext.Provider value={values}>

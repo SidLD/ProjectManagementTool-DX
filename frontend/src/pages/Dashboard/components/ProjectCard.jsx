@@ -25,8 +25,8 @@ export const ProjectCard = ({project}) => {
                     </Button>
                 </Tooltip>
             </div>
-            <div className='w-1/2 flex justify-center items-center'>
-                <Progress type='circle' trailColor={generateRandomStringColor()} percent={project.progress}/>
+            <div className='w-1/2   flex justify-center items-center'>
+                <Progress type='circle' size={90} trailColor={generateRandomStringColor()} percent={project.progress}/>
             </div>
         </div>
     )

@@ -67,51 +67,55 @@ export const getProjectUpdatePermission = async (projectId, userId) => {
     }
 }
 export const getPermission = async (userId, projectId) => {
-    const ifManager = await prisma.project.findFirst({
-        where: {
-            AND: [
-                {id: projectId},
-                {managerId: userId}
-            ]
-        }
-    })
-    if(ifManager){
-        return [
-            'VIEW-PROJECT',
-            'EDIT-PROJECT',
-            'DELETE-PROJECT',
-            'EDIT-TASK',
-            'DELETE-TASK',
-            'CREATE-TASK',
-            'VIEW-TASK',
-            'VIEW-MEMBER',
-            'ADD-MEMBER',
-            'DELETE-MEMBER',
-            'ADD-ROLE',
-            'DELETE-ROLE',
-            'EDIT-ROLE',
-            'VIEW-ROLE'
-        ]
-    }else{
-        const permissions = await prisma.teamMember.findFirst({
+    try {
+        const ifManager = await prisma.project.findFirst({
             where: {
-                projectId: projectId,
-                userId : userId
-            },
-            select: {
-                role: {
-                    select: {
-                        name:true,
-                        role_permissions: {
-                            select: {
-                                name: true
+                AND: [
+                    {id: projectId},
+                    {managerId: userId}
+                ]
+            }
+        })
+        if(ifManager){
+            return [
+                'VIEW-PROJECT',
+                'EDIT-PROJECT',
+                'DELETE-PROJECT',
+                'EDIT-TASK',
+                'DELETE-TASK',
+                'CREATE-TASK',
+                'VIEW-TASK',
+                'VIEW-MEMBER',
+                'ADD-MEMBER',
+                'DELETE-MEMBER',
+                'ADD-ROLE',
+                'DELETE-ROLE',
+                'EDIT-ROLE',
+                'VIEW-ROLE'
+            ]
+        }else{
+            const permissions = await prisma.teamMember.findFirst({
+                where: {
+                    projectId: projectId,
+                    userId : userId
+                },
+                select: {
+                    role: {
+                        select: {
+                            name:true,
+                            role_permissions: {
+                                select: {
+                                    name: true
+                                }
                             }
                         }
                     }
                 }
-            }
-        })
-        const result = permissions.role.role_permissions.map(temp => temp.name)
-        return result
+            })
+            const result = permissions.role.role_permissions.map(temp => temp.name)
+            return result
+        }
+    } catch (error) {
+        return []
     }
 }
