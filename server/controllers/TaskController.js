@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client"
 import { getPermission } from "../repository/RoleRepository.js"
 import { getMembership } from "../repository/TeamMemberRepository.js"
-import { createLog, getLog } from "../repository/LogRepository.js"
+import { createLog } from "../repository/LogRepository.js"
 import { updateProgress } from "../repository/ProjectRepository.js"
 const prisma = new PrismaClient()
 
@@ -11,7 +11,7 @@ export const getTask = async (req, res) => {
         const userId = req.user.id
         const params = req.query
         const permissions = await getPermission(userId, projectId);
-        if(permissions.includes("VIEW-TASK")){
+        if(permissions.includes("VIEW-TASK") || permissions.includes("EDIT-TASK")){
             let data = await prisma.task.findMany({
                 where: {
                     ...params,
@@ -35,15 +35,6 @@ export const getTask = async (req, res) => {
                             firstName: true,
                             lastName: true,
                             id: true,
-                            teamMembers: {
-                                select: permissions.includes("VIEW-ROLE") && {
-                                    role: {
-                                        select:{
-                                            name: true
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
                     
@@ -51,7 +42,7 @@ export const getTask = async (req, res) => {
             })
             res.status(200).send({ok:true, data})
         }else{
-            res.status(400).send({ok:true, message: "Access Denied"})
+            res.status(403).send({ok:true, message: "Access Denied"})
         }
     } catch (error) {
         console.log(error)
@@ -62,10 +53,14 @@ export const getTask = async (req, res) => {
 export const getAllTasks = async (req, res) => {
     try {
         const userId = req.user.id
-        const params = req.query
+        let query = req.query
+        const start = parseInt(query.start)
+        const sort = query.sort
+        delete query.start
+        delete query.sort
         const data = await prisma.task.findMany({
             where: {
-                ...params,
+                ...query,
                 task_users :{
                     some: {
                         id: userId
@@ -92,19 +87,19 @@ export const getAllTasks = async (req, res) => {
                     }
                 }
                 
-            }
+            },
+            orderBy: sort
         })
         const ifAccessDatas = await Promise.all(
             data.map(async (task) => {
                 const tempPermissions = await getPermission(userId ,task.project.id)
-                console.log(tempPermissions.includes("VIEW-TASK"))
                 if(tempPermissions.includes("VIEW-TASK")){
                     task.permissions = tempPermissions
                     return task
                 }
             })
         )
-        res.status(200).send({ok:true, ifAccessDatas})
+        res.status(200).send({ok:true, data:ifAccessDatas})
     } catch (error) {
         console.log(error)
         res.status(400).send({ok:false, message: error.message})
@@ -120,29 +115,28 @@ export const createTask = async (req, res) => {
         if(permissions.includes("CREATE-TASK")){
             const data = await Promise.all(
                 params.map(async (newTask) => {
-                    const ifMember = await getMembership(newTask.userId, projectId)
-                    if(ifMember){
-                        return await prisma.task.create({
-                            data: {
-                                task: newTask.name,
-                                startDate : new Date(newTask.startDate),
-                                description: newTask.description,
-                                endDate: new Date(newTask.endDate),
-                                status: "TO DO",
-                                task_users: {
-                                    connect: newTask?.users?.map((user) => ({id: user.key}))
-                                },
-                                project: {
-                                    connect: {id: projectId}
-                                }
+                    return await prisma.task.create({
+                        data: {
+                            task: newTask.name,
+                            startDate : new Date(newTask.startDate),
+                            description: newTask.description,
+                            endDate: new Date(newTask.endDate),
+                            status: "TO DO",
+                            task_users: {
+                                connect: newTask?.users?.map((user) => ({id: user.key})) || []
+                            },
+                            project: {
+                                connect: {id: projectId}
                             }
-                        })
-                    }
+                        }
+                    })
                 })
             )
             const logs  = await Promise.all(
                 data.map( async (createdTask) => {
-                return await createLog({taskId:createdTask.id, userId:userId})
+                    if(createdTask){
+                        return await createLog({taskId:createdTask.id, userId:userId})
+                    }
             }))
             
             res.status(200).send({ok:true, data, logs})
@@ -219,57 +213,41 @@ export const deleteTask = async (req, res) => {
         res.status(400).send({ok:false,message: "Data Required"})
     }
 }
-export const assignTask = async (req, res) => {
+export const updateTaskUser = async (req, res) => {
     try {
-        const projectId = req.params.projectId
-        const userId = req.user.id
+        const {projectId, taskId, method} = req.params
         const params = req.body
-        const permissions = await getPermission(userId, projectId);
+        const permissions = await getPermission(req.user.id, projectId);
         if(permissions.includes("EDIT-TASK")){
+            if(method === 'assign'){
+                const isExist = await prisma.task.findFirst({
+                    where: {id: taskId},
+                    select: {
+                        task_users: {
+                            select: {
+                                id: true
+                            }
+                        }
+                    }
+                })
+                const taskUsers = isExist?.task_users.map(user => user.id)
+                const newUser = params.task_users.connect[params.task_users.connect.length-1]
+                const error = (taskUsers.includes(newUser.id))
+                if(error){
+                  return res.status(400).send({ok:false, message: "User Already Exist"})
+                }
+            }
             const data = await prisma.task.update({
                 where: {
-                    projectId: projectId,
-                    id: params.taskId
+                    id: taskId
                 },
                 data: {
-                    task_users: {
-                        connect: {id: params.userId}
-                    }
+                    ...params
                 }
             })
-            res.status(200).send({ok:true, data})
-        }else{
-            res.status(400).send({ok:false,message: "Access Denied"})
-        }
-    } catch (error) {
-        console.log(error)
-        res.status(400).send({ok:false,message: "Data Required"})
-    }
-}
-export const unscribedTask = async (req, res) => {
-    try {
-        const projectId = req.params.projectId
-        const userId = req.user.id
-        const params = req.body
-        const permissions = await getPermission(userId, projectId);
-        if(permissions.includes("EDIT-TASK")){
-            const logs = await prisma.logs.deleteMany({
-                where: {
-                    taskId: params.taskId
-                }
-            })
-            console.log(logs)
-            const data = await prisma.task.update({
-                where: {
-                    projectId: projectId,
-                    id: params.taskId
-                },
-                data: {
-                    task_users: {
-                        disconnect: {id: params.userId}
-                    }
-                }
-            })
+            if(data) {
+                await createLog({taskId:data.id, userId:req.user.id, params: {task_users:method}})
+            }
             res.status(200).send({ok:true, data})
         }else{
             res.status(400).send({ok:false,message: "Access Denied"})

@@ -30,7 +30,7 @@ export const TaskList = ({title}) => {
     setDropItems(statusFilter(tasks, title))
   }, [tasks])
   return (
-    <div ref={drop} className="h-full w-full bg-white rounded-b-lg shadow-md overflow-auto hover:overflow-y-scroll">
+    <div ref={drop} className="h-full w-full bg-white rounded-b-lg shadow-md overflow-auto hover:overflow-y-scroll overflow-x-hidden">
       {dropItems.length > 0 ? dropItems.map(dropItem => <TaskItem 
           key={dropItem.id} 
           item={dropItem}/>

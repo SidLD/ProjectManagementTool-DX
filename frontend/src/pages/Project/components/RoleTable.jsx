@@ -90,9 +90,18 @@ export const RoleTable = ({data = []}) => {
             permissions: (
               <div className='grid-col-2'>
                 {[data?.role_permissions.map((permission) => {
-                  let color = "blue"
-                  if(permission.name.includes('DELETE')){
+                  let color = ""
+                  if(permission.name.includes("DELETE")){
                     color = "red"
+                  }
+                  else if(permission.name.includes("EDIT")){
+                    color = "blue"
+                  }
+                  else if(permission.name.includes("CREATE")) {
+                    color = "green"
+                  }
+                  else{
+                    color = "yellow"
                   }
                   return (<Tag color={color} key={permission.id}>{permission.name}</Tag>)
                 }

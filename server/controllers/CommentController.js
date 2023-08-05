@@ -90,7 +90,7 @@ export const getComment = async (req, res) => {
                 }
             },
             orderBy: {
-                createdAt: 'desc'
+                createdAt: 'asc'
             }
         })
 

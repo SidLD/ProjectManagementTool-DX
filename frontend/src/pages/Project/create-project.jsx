@@ -1,7 +1,6 @@
-import { Form, Input , Button, Modal, DatePicker, Row, Col, Checkbox, message} from "antd"
+import { Form, Input , Button, Modal, DatePicker, Row, Col, Checkbox, message, Table, Tag} from "antd"
 import { useEffect, useRef, useState } from "react";
 import { createProject, getAllPermission } from "../../lib/api";
-import { RoleTable } from './components/RoleTable';
 import TextArea from "antd/es/input/TextArea";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +10,7 @@ export const CreateProject = () => {
   const navigate = useNavigate()
   const [permissions, setPemissions] = useState()
   const [roles, setRoles] = useState([])
-  const [selectedPermission, setSelectedPermission] = useState([])
+  const [selectedPermission, setSelectedPermission] = useState([{}])
   const roleInput = useRef()
   const [messageAPI, contextHolder] = message.useMessage()
 
@@ -32,13 +31,28 @@ export const CreateProject = () => {
     if(roleInput.current.value.trim() === "" || selectedPermission.length < 1){
       showMessage('warning', 'Please Input Data')
     }else{
-      const data = {
-        id: roles.length + 2,
+      const id = roles.length + 2
+      setRoles([...roles, {
+        key: id,
         name : roleInput.current.value,
-        role_permissions: selectedPermission
-      }
-      setRoles([...roles, data])
-      console.log('roles', data)
+        role_permissions: selectedPermission.map(p => {
+          let color = ""
+          if(p.name.includes("DELETE")){
+            color = "red"
+          }
+          else if(p.name.includes("EDIT")){
+            color = "blue"
+          }
+          else if(p.name.includes("CREATE")) {
+            color = "green"
+          }
+          else{
+            color = "yellow"
+          }
+          return <Tag key={p.id} color={color}>{p.name}</Tag>
+        }),
+        action: <Button onClick={() => handleRemoveRole(id)}>Remove</Button>
+      }])
       roleInput.current.value = ""
       setOpen(false);
       showMessage('success', 'Ok')
@@ -75,6 +89,23 @@ export const CreateProject = () => {
     }
     
   }
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Permissions',
+      dataIndex: 'role_permissions',
+      key: 'role_permissions',
+    },
+    {
+      title: 'Action',
+      dataIndex: 'action',
+      key: 'action',
+    }
+  ]
   useEffect(() => {
     const getPermissions = async () => {
       try {
@@ -138,7 +169,7 @@ export const CreateProject = () => {
           Create Role
         </Button>
         <div>
-          <RoleTable data={roles} handleRemoveRole={handleRemoveRole}/>
+        <Table dataSource={roles} columns={columns} />;
         </div>
       </div>
           {contextHolder}
@@ -159,12 +190,29 @@ export const CreateProject = () => {
                       onChange={onChangePermission}
                     >
                       <Row>
-                        {permissions?.map((temp, index) =>
-                          (
+                        {permissions?.map((temp, index) => {
+                          let color = ""
+                          if(temp.name.includes("DELETE")){
+                            color = "red"
+                          }
+                          else if(temp.name.includes("EDIT")){
+                            color = "blue"
+                          }
+                          else if(temp.name.includes("CREATE")) {
+                            color = "green"
+                          }
+                          else{
+                            color = "yellow"
+                          } 
+                          return  (
                             <Col span={8} key={index}>
-                              <Checkbox value={temp}>{temp.name}</Checkbox>
+                              <Tag color={color}>
+                              <Checkbox value={temp.id}>{temp.name}</Checkbox>
+                              </Tag>
                             </Col>
                           )
+                        }
+                         
                         )}
                       </Row>
                     </Checkbox.Group>

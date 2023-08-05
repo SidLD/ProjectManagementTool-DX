@@ -11,6 +11,7 @@ export const defaultPermission = [
     'VIEW-MEMBER',
     'ADD-MEMBER',
     'DELETE-MEMBER',
+    'EDIT-MEMBER',
     'ADD-ROLE',
     'DELETE-ROLE',
     'EDIT-ROLE',

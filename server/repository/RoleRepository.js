@@ -88,10 +88,12 @@ export const getPermission = async (userId, projectId) => {
                 'VIEW-MEMBER',
                 'ADD-MEMBER',
                 'DELETE-MEMBER',
+                'EDIT-MEMBER',
                 'ADD-ROLE',
                 'DELETE-ROLE',
                 'EDIT-ROLE',
-                'VIEW-ROLE'
+                'VIEW-ROLE',
+                
             ]
         }else{
             const permissions = await prisma.teamMember.findFirst({

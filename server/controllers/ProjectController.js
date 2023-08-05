@@ -8,17 +8,27 @@ export const getProjects = async (req, res) => {
         let data = null
         if(params.id){
             const permissions = await getPermission(req.user.id, params.id)
-            data = await prisma.project.findMany({
-                where: params,
-                select: permissions.includes("VIEW-PROJECT") && {
-                    id: true,
-                    name: true,
-                    description: true,
-                    progress: true,
-                    startDate: true,
-                    endDate: true,
-                }
-            })
+            if(permissions.includes("VIEW-PROJECT") || permissions.includes("EDIT-PROJECT")){
+                data = await prisma.project.findMany({
+                    where: params,
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true,
+                        progress: true,
+                        startDate: true,
+                        endDate: true,
+                        manager: {
+                            select: {
+                                firstName: true,
+                                lastName: true
+                            }
+                        }
+                    }
+                })
+            }else{
+                return res.status(403).send({ok:false, message:"Access Denied"})
+            }
         }else{
             data = await prisma.project.findMany({
                 where: {
@@ -114,7 +124,7 @@ export const deleteProject = async (req, res) => {
             }
             res.status(200).send({ok:true, data})
         }else{
-            res.status(400).send({ok:false, message: "Access Denied"})
+            res.status(403).send({ok:false, message: "Access Denied"})
         }
     } catch (error) {
         console.log(error)

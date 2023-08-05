@@ -1,59 +1,74 @@
 /* eslint-disable react/prop-types */
-import { Button, Checkbox, Col, Modal, Row, Table, Tag } from 'antd';
+import { Button, Modal,Select, Table, Tag, message } from 'antd';
 import { useContext, useState } from 'react';
 import { PageContext } from '../../../lib/context';
+import { deleteTeamMember, updateTeamMember } from '../../../lib/api';
 const { Column } = Table;
 
 export const UserTable = ({data = []}) => {
-    const {roles} = useContext(PageContext)
+    const {roles, projectId, fetchTeam, fetchTasks} = useContext(PageContext)
     const [showModal, setShowModal] = useState(false)
     const [selectedData, setSelectedData] = useState(null)
-    // console.log(roles)
-    const onChangePermission = (e) => {
-      console.log(e)
+    const [selectedRoleForEdit, setSelectedRoleForEdit] = useState()
+    const [messageAPI, contextHolder] = message.useMessage()
+
+    const handleRoleChange = (e) => {
+      setSelectedRoleForEdit(e)
+    }
+
+    const showMessage = (type, content) => {
+      messageAPI.open({
+        type,
+        content,
+      })
     }
     const handleShowModal = (id, type) => {
       setShowModal(true)
-      const functionType = type.toLowerCase() === "edit" ? saveEditRole : saveRemoveRole
-      const detail = type.toLowerCase() === "edit" ? 
-        (<h2 className='text-red-500'>Confirm to delete Role</h2>) : 
-        (<h2 className=''>
-          <Checkbox.Group
-                      style={{
-                        width: '100%',
-                      }}
-                      onChange={onChangePermission}
-                    >
-                      <Row>
-                        {roles.permissions?.map((temp, index) =>
-                          (
-                            <Col span={8} key={index}>
-                              <Checkbox value={temp}>{temp.name}</Checkbox>
-                            </Col>
-                          )
-                        )}
-                      </Row>
-                    </Checkbox.Group>
-        </h2>)
-      setSelectedData(
-        (
-          <div>
-            {detail}
-            <Button onClick={() => functionType(id)}>{type}</Button>
-          </div>
-        )
-      )
+      setSelectedData({id, type})
     }
     const handleCancel = () => {
       setShowModal(false)
     }
-    const saveRemoveRole = (id) => {
-      console.log("Remove", id)
-      setShowModal(false)
+    const saveRemoveMember = async () => {
+      try {
+        const payload = {
+          memberId: selectedData.id
+        }
+        const response = await deleteTeamMember(projectId, payload)
+        if(response.data.ok){
+          setSelectedData(null)
+          setSelectedRoleForEdit(null)
+          showMessage('success', 'Success')
+          setShowModal(false) 
+          await fetchTeam()
+          await fetchTasks()
+        }
+      } catch (error) {
+        showMessage('warning', error.response.data.message)
+      }
     }
-    const saveEditRole = (id) => {
-      console.log("EDIT",id)
-      setShowModal(false)
+    const saveEditRole = async () => {
+      if(selectedRoleForEdit) { 
+        try {
+          const payload = {
+            roleId: selectedRoleForEdit
+          }
+          const response = await updateTeamMember(projectId,selectedData.id, payload)
+          if(response.data.ok) {
+            await fetchTeam()
+            setSelectedData(null)
+            setSelectedRoleForEdit(null)
+            showMessage('success', 'Success')
+            setShowModal(false)
+          }else{
+            showMessage('warning', 'Something Went Wrong')
+          }
+        } catch (error) {
+          showMessage('warning', error.response.data.message)
+        }
+      }else{
+        showMessage('warning', 'Please Select Role')
+      }
     }
     const items = data.map((data) => (
         {
@@ -62,13 +77,14 @@ export const UserTable = ({data = []}) => {
             role: (<Tag>{data?.role?.name }</Tag>),
             action: <>
             <Button onClick={() => handleShowModal(data.id, "Remove")}>Remove</Button>
-            <Button onClick={() => handleShowModal(data.id, "Edit")}>Edit</Button>
+            <Button onClick={() => handleShowModal(data.id, "Edit")}>Edit Role</Button>
             </>
 
         }
     ))
   return (
     <>
+    {contextHolder}
       <Table dataSource={items}>
       <Column title="User" dataIndex="name" key="name" />
       <Column
@@ -79,7 +95,28 @@ export const UserTable = ({data = []}) => {
       <Column title="Action" dataIndex="action" key="action" />
     </Table>
     <Modal open={showModal} onCancel={handleCancel} footer={null}>
-      {selectedData}
+      {selectedData?.type?.toLowerCase() === "remove" ? 
+        <>
+        <h2 className='text-red-500'>Confirm Remove User</h2>
+        <Button onClick={saveRemoveMember}>Save</Button>
+        </>
+        : 
+        <>
+            <h2 className=''>
+              Select New Role
+            </h2>
+              <Select 
+                style={{
+                  width: 120,
+                }}
+                defaultValue={"Disable"}
+                onSelect={handleRoleChange}
+                options={roles.map(r => (
+                  {value: r.id, label: r.name }
+              ))}/>
+              
+          <Button onClick={saveEditRole}>Save</Button>
+        </>}
     </Modal>
     </>
   )

@@ -8,9 +8,30 @@ export const addTeamMember = async (req, res) => {
         const projectId = req.params.projectId
         const permissions = await getPermission(req.user.id, projectId)
         if(permissions.includes("ADD-MEMBER")){
+            let error = false
             const data = await Promise.all(
-                params.map((member) => {
-                    return prisma.teamMember.create({
+                params.map(async (member) => {
+                    const isMember = await prisma.teamMember.findMany({
+                        where: {
+                            AND: [
+                                {userId: member.userId},
+                                {projectId: projectId}
+                            ]
+                        },
+                    })
+                    const isManager = await prisma.project.findMany({
+                        where: {
+                            AND : [
+                                {id: projectId},
+                                {managerId: member.userId}
+                            ]
+                        }
+                    })
+                    if(isMember.length > 0 || isManager.length > 0){
+                        error = true
+                        return  
+                    }else {
+                       return await prisma.teamMember.create({
                         data: {
                             project: {
                                 connect: {
@@ -48,10 +69,16 @@ export const addTeamMember = async (req, res) => {
                                 }
                             }
                         }
-                    })
+                    }) 
+                    }
+                    
                 })
             )
-            res.status(200).send({ok:true, data})   
+            if(error) {
+                res.status(400).send({ok:false,message: "User Already Exist in the Project"})
+            }else{
+                res.status(200).send({ok:true, data})  
+            } 
         }else{
             res.status(400).send({ok:false, message:"Permission Denied"})
         }
@@ -62,13 +89,17 @@ export const addTeamMember = async (req, res) => {
 }
 export const getTeamMembers = async (req, res) => {
     try {
-        const projectId = req.query.projectId
-        const permissions = await getPermission(req.user.id, projectId)
-        if(permissions.includes("VIEW-MEMBER")){
+        let query = req.query
+        const limit = parseInt(query.limit)
+        const start = parseInt(query.start)
+        const sort = query.sort
+        delete query.start
+        delete query.limit
+        delete query.sort
+        const permissions = await getPermission(req.user.id, query.projectId)
+        if(permissions.includes("VIEW-MEMBER") || permissions.includes("DELETE-MEMBER")){
             const data = await prisma.teamMember.findMany({
-                where: {
-                    projectId: projectId
-                },
+                where: query,
                 select:{
                     id: true,
                     role: {
@@ -78,13 +109,17 @@ export const getTeamMembers = async (req, res) => {
                     },
                     user: {
                         select: {
+                            email: true,
                             firstName: true,
                             lastName: true,
                             id: true,
                         }
                     }
 
-                }
+                },
+                orderBy: {...sort},
+                take: limit,
+                skip: start
             })
             res.status(200).send({ok:true, data})   
         }else{
@@ -94,6 +129,34 @@ export const getTeamMembers = async (req, res) => {
         console.log(error)
         res.status(400).send({ok:false,message: "Invalid Data"})
     }   
+}
+export const updateTeamMember = async (req, res) => {
+    try {
+        const roleId = req.body.roleId
+        const projectId = req.params.projectId
+        const memberId = req.params.memberId
+        const permissions = await getPermission(req.user.id, projectId)
+        if(permissions.includes("EDIT-MEMBER")){
+            const data = await prisma.teamMember.update({
+                where: {
+                    id: memberId
+                },
+                data: {
+                    role: {
+                        connect: {
+                            id: roleId
+                        }
+                    }
+                }
+            })
+            res.status(200).send({ok:true, data})   
+        }else{
+            res.status(400).send({ok:false, message:"Permission Denied"})
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(400).send({ok:false,message: "Invalid Data"})
+    } 
 }
 export const findMember = async (req, res) => {
     try {
@@ -118,4 +181,69 @@ export const findMember = async (req, res) => {
         console.log(error)
         res.status(400).send({ok:false,message: "Invalid Data"})
     }   
+}
+export const deleteTeamMember = async (req, res) => {
+    try {
+        const projectId = req.params.projectId
+        const params = req.body
+        const permissions = await getPermission(req.user.id, projectId);
+        if(permissions.includes("DELETE-MEMBER")){
+            const data = await prisma.teamMember.delete({
+                where: {
+                    id: params.memberId
+                },
+                include: {
+                    user:true
+                }
+            })
+            //Get the user from team member,
+            //Find all task associated with that user
+            //Delete their relations
+            //Somehow deleteMany Relation does not work *
+            const relatedTasks = await prisma.task.findMany({
+                where: {
+                    AND: [
+                        {projectId: projectId},
+                        {task_users: {
+                            some: {
+                                id: data.user.id
+                            }
+                        }}
+                    ]
+                },
+                include: {
+                    task_users: true
+                }
+            })
+            const updateTasks = await Promise.all(
+                relatedTasks?.map( async (item)=>{
+                    const newUsers = item.task_users.filter(user => {
+                        if(!(user.id === data.user.id)){   
+                            return ({id: user.id})
+                        }
+                    }) 
+                    return await prisma.task.update({
+                        where: {
+                            id: item.id
+                        },
+                        data: {
+                            task_users: {
+                                set: newUsers
+                            }
+                        },
+                        include: {
+                            task_users: true
+                        }
+                    })
+                })
+            )
+
+            res.status(200).send({ok:true, data, updateTasks})
+        }else{
+            res.status(400).send({ok:false,message: "Access Denied"})
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(400).send({ok:false,message: "Data Required"})
+    }  
 }

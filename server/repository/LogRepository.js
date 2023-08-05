@@ -9,12 +9,14 @@ export const createLog = async ({taskId, userId, params}) => {
         const ifStartDate = params.startDate ? true : false
         const ifEndDate = params.endDate ? true : false
         const ifDescription = params.description ? true: false
+        const ifTaskUsers = params.task_users ? true : false
 
         detail += ifUpdateStatus ? `Update Status` : ""
         detail += ifTask ? `Update Task` : ""
         detail += ifStartDate ? `Update Start Date` : ""
         detail += ifEndDate ? `Update End Date` : ""
         detail += ifDescription ? `Update Description` : ""
+        detail += ifTaskUsers ? `${params.task_users} User` : ""
     }else{
         detail = `Create Task`
     }

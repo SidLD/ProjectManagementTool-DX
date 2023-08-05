@@ -28,40 +28,38 @@ export const TaskItem = ({item}) => { // eslint-disable-next-line no-unused-vars
     
     return (
         <Tooltip title={item.description}>
-            <div ref={drag}
-            className={
-                `h-16 m-2 p-2 rounded-md shadow-md hover:scale-y-110 delay-100 ${
-                    colors.border
-                } border-2`
-            }>
-                <p className={
-                    `${
-                        colors.color
-                    }`
-                }>
-                    {
-                    item.task
-                }</p>
-                <p className="font-bold">{item.project.name}</p>
-                <Avatar.Group
-                    className="float-right relative bottom-12 left-1"
-                    >
-                    {item.task_users.map(user => (
-                        <Tooltip key={user.id} title={`${user.firstName} ${user.lastName}`}>
-                        <Avatar style={
-                            {backgroundColor: '#f56a00'}
-                        }>
-                            {user.firstName} </Avatar>
+            <div ref={drag} className={`h-20 m-2 p-2 shadow-md hover:scale-y-110 delay-100 ${
+                    colors.border} border-4` }>
+                <div className="flex justify-between items-center">
+                    <p className={
+                        `${
+                            colors.color
+                        }`
+                    }>
+                        {
+                        item.task
+                    }</p>
+                    <Avatar.Group className="" >
+                        {item.task_users.map(user => (
+                            <Tooltip key={user.id} title={`${user.firstName} ${user.lastName}`}>
+                            <Avatar style={
+                                {backgroundColor: '#f56a00'}
+                            }>
+                                {user.firstName} </Avatar>
 
+                        </Tooltip>
+                        ))}
+                    </Avatar.Group>
+                </div>
+                <div className="flex justify-between items-center">
+                    <p className="font-bold">{item.project.name}</p>
+                    <Tooltip placement='leftBottom' title="View Task Detail" color='blue'>
+                        <Button className="border-none  flex justify-end items-center cursor-pointer" 
+                            onClick={() => navigate(`/project/${item.project.id}/tasks/${item.id}`)}>
+                        <CaretRightOutlined />
+                        </Button>
                     </Tooltip>
-                    ))}
-                </Avatar.Group>
-                <Tooltip className='flex-1 float-right bottom-5 left-8' placement='leftBottom' title="View Task Detail" color='blue'>
-                    <Button className="h-5 w-5 border-none cursor-pointer" 
-                        onClick={() => navigate(`/project/${item.project.id}/tasks/${item.id}`)}>
-                     <CaretRightOutlined />
-                     </Button>
-                </Tooltip>
+                </div>
             </div>
         </Tooltip>
     )

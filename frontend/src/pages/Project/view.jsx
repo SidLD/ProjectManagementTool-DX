@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react'
 import { PageContext } from '../../lib/context'
 import Search from 'antd/es/input/Search'
-import { Button, Checkbox, Col, DatePicker, Drawer, Form, Input, Modal, Progress, Row, Select, Table, Tooltip } from 'antd'
+import { Button, Checkbox, Col, DatePicker, Drawer, Form, Input, Modal, Progress, Row, Select, Table, Tag, Tooltip } from 'antd'
 import { SearchBar } from './components/SearchBar'
 import { RoleTable } from './components/RoleTable'
 import { UserTable } from './components/UserTable'
@@ -10,13 +10,14 @@ import {
   DeleteOutlined
 } from '@ant-design/icons';
 import { TaskList } from '../../components/TaskList'
+import { CustomeTable } from '../../components/CustomeTable'
 
 export const ProjectView = () => {
   const {contextHolder, loader, project, showModal, handleCancel, isModalOpen, handleSubmitTask,
           isModalOpenDelete, showDeleteModal, handleDeleteCancel, handleDeleteProject, disabledDate,
           open, showDrawer, onClose, roles, team, 
           roleInput, onChangePermission, showRoleModal, handleOkRoleModal, handleShowRoleModal,
-          handleCancelRoleModal, allPermission
+          handleCancelRoleModal, allPermission, projectId
           } = useContext(PageContext)
   
   const [selectedUserForTask, setSelectedUserForTask] = useState([])
@@ -63,10 +64,10 @@ export const ProjectView = () => {
               <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Setting</Button>
           </div>
           <div className='xl:w-1/3 font-poppins p-2'> 
-            <div className=''>
+            <div className='font-poppins bg-white p-2 rounded-2xl'>
               <h2>Title: {project.name}</h2>
-              <p>Description:</p>
-              <p className=''>{project.description}</p>
+              <p>Description: {project.description}</p>
+              <p>Manager: {`${project?.manager?.firstName} ${project?.manager?.lastName}`}</p>
               <p>Date:</p>
               <div className='flex w-full justify-between'>
                 <CustomeDate borderColor="border-blue-800" title="Start Date" color="text-blue-500" date={project.startDate} />
@@ -76,6 +77,7 @@ export const ProjectView = () => {
                 <p className='text-left '>Progress</p>
                 <Progress className='w-3/4 ml-2 my-auto' percent={project.progress}/>
               </Tooltip>
+              {!loader &&  <CustomeTable projectId={projectId} users={team} />}
             </div>
           </div>
           <div className='m-2 xl:w-2/3 xl:h-full'>
@@ -177,12 +179,29 @@ export const ProjectView = () => {
                       onChange={onChangePermission}
                     >
                       <Row>
-                        {allPermission?.map((temp, index) =>
-                          (
+                        {allPermission?.map((temp, index) => {
+                          let color = ""
+                          if(temp.name.includes("DELETE")){
+                            color = "red"
+                          }
+                          else if(temp.name.includes("EDIT")){
+                            color = "blue"
+                          }
+                          else if(temp.name.includes("CREATE")) {
+                            color = "green"
+                          }
+                          else{
+                            color = "yellow"
+                          } 
+                          return  (
                             <Col span={8} key={index}>
+                              <Tag color={color}>
                               <Checkbox value={temp.id}>{temp.name}</Checkbox>
+                              </Tag>
                             </Col>
                           )
+                        }
+                         
                         )}
                       </Row>
                     </Checkbox.Group>

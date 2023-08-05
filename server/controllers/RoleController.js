@@ -6,7 +6,7 @@ export const getRoles = async (req, res) => {
     try {
         const projectId = req.query.projectId
         const permissions = await getPermission(req.user.id, projectId)
-        if(permissions.includes("VIEW-ROLE")){
+        if(permissions.includes("VIEW-ROLE") || permissions.includes("EDIT-ROLE")){
             const data = await prisma.role.findMany({
                 where: {
                     projectId: projectId
@@ -24,7 +24,7 @@ export const getRoles = async (req, res) => {
             })
             res.status(200).send({ok:true, data})
         }else{
-            res.status(200).send({ok:false, message: "Access Denied"})
+            res.status(403).send({ok:false, message: "Access Denied"})
         }
     } catch (error) {
         console.log(error)
@@ -36,7 +36,6 @@ export const createRole = async (req, res) => {
         const projectId = req.params.projectId
         const params = req.body
         const permissions = await getPermission(req.user.id, projectId)
-        console.log(permissions)
         if(permissions.includes('ADD-ROLE')){
             const data =  await prisma.role.create({
                 data: {
@@ -53,7 +52,7 @@ export const createRole = async (req, res) => {
             })
             res.status(200).send({ok:true, data})
         }else{
-            res.status(400).send({ok:false, message: "Access Denied"})
+            res.status(403).send({ok:false, message: "Access Denied"})
         }
 
     } catch (error) {
@@ -83,7 +82,7 @@ export const updateRole = async (req, res) => {
             })
             res.status(200).send({ok: true, data})
         }else{
-            res.status(400).send({ok:false, message: "Access Denied"})
+            res.status(403).send({ok:false, message: "Access Denied"})
         }
     } catch (error) {
         console.log(error)
@@ -117,7 +116,7 @@ export const deleteRole = async (req, res) => {
             })
             res.status(200).send({ok:true, data, removeUser})
         }else{
-            res.status(400).send({ok:false, message: "Access Denied"})
+            res.status(403).send({ok:false, message: "Access Denied"})
         }
     } catch (error) {
         console.log(error.message)

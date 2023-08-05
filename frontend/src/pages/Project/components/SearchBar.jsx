@@ -40,8 +40,10 @@ export const SearchBar = () => {
                 firstName:query, 
                 lastName: query
             }
-            const response = await getUsers(payload)
-            setData(response.data.data)
+            setTimeout(async () =>{
+               const response =  await getUsers(payload)
+               setData(response.data.data)
+            },1000)
         } catch (error) {
             setData([])
             // console.log(error)
@@ -49,7 +51,7 @@ export const SearchBar = () => {
     }
     useEffect(() => {
         setItems(roles?.map((role) => ({value: role.id, label: role.name})))
-    },[])
+    },[roles])
     return (
         <>
         <div className="w-full">

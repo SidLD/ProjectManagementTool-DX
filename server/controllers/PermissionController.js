@@ -5,7 +5,13 @@ const prisma = new PrismaClient()
 
 export const getAllPermissions = async (req, res) => {
     try {
-        const permissions = await prisma.permission.findMany({})
+        const permissions = await prisma.permission.findMany(
+            {
+                orderBy : {
+                    name: 'desc'
+                }
+            }
+        )
         res.status(200).send({ok:true, data: permissions})
     } catch (error) {
         console.log(error)

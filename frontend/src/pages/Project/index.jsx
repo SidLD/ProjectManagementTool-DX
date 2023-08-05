@@ -34,8 +34,15 @@ export const Project = () => {
     const fetchTeam = async () => {
       try {
         const payload = {
-          projectId: projectId
-        }
+          projectId,
+          sort: {
+            user: {
+              firstName: 'desc'
+            }
+          },
+          start: 0,
+          limit : 10
+      }
         const response = await getTeamMembers(payload)
         setTeam(response.data.data)
       } catch (error) {
@@ -48,7 +55,7 @@ export const Project = () => {
           {
             name: e.name,
             description: e.description,
-            users: e.selectedUserForTask,
+            users: e?.selectedUserForTask || [],
             startDate: new Date(e.startEndTime[0]),
             endDate: new Date(e.startEndTime[1])
           }
@@ -102,7 +109,13 @@ export const Project = () => {
         const response = await getProjects(payload)
         setProject(response.data?.data[0])
       } catch (error) {
-        showMessage('warning', 'ERROR DIDI')
+        showMessage('warning', error.response.data.message)
+        if(error.response.status === 403){
+          showMessage('warning', "Navigating to Dashboard")
+          setTimeout(() => {
+            navigate("/dashboard")
+          }, 1000)
+        }
       }
     }
     const getUserPermission = async() => {
@@ -170,10 +183,15 @@ export const Project = () => {
     }
     const handleStatusChange = async (task, updateTo) => {
       try {
-        const response = await updateTask(task.project.id, task.id, {status:updateTo})
+        const payload = {
+          status:updateTo
+        }
+        const response = await updateTask(task.project.id, task.id, payload)
         if(response.data.ok){
           showMessage('success', `Set Status to ${updateTo}`)
+          await fetchProject()
           await fetchTasks()
+          
         }else{
           showMessage('warning', response.data.message)
         }
@@ -246,7 +264,6 @@ export const Project = () => {
     const handleCancelRoleModal = () => {
       setShowRoleModal(false)
     }
-
     const fetchAllPermission = async () => {
       try {
         const response = await getAllPermission()
@@ -283,6 +300,8 @@ export const Project = () => {
       project,
       permission,
       roles,
+      fetchTeam,
+      fetchTasks,
       showMessage,
       addTeamMember,
       team,

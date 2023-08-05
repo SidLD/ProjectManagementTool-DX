@@ -16,10 +16,17 @@ export const Task = () => {
         content
       })
     }
-    const fetchTasks = async () => {
+    const fetchTasks = async (start, sort, query) => {
       try {
-        const response = await getAllTasks({})
+        const payload = {
+          ...query,
+          start,
+          sort
+        }
+        console.log("P", payload)
+        const response = await getAllTasks(payload)
         setTasks(response.data?.data)
+        console.log(response)
       } catch (error) {
         console.log(error) 
         showMessage('warning', 'Something Went Wrong')
@@ -40,7 +47,7 @@ export const Task = () => {
       }
     }
     useEffect(() => {
-      fetchTasks()
+      fetchTasks(0,{startDate: 'asc'},{})
       setLoader(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
@@ -49,7 +56,8 @@ export const Task = () => {
         contextHolder,
         tasks,
         navigate,
-        handleStatusChange
+        handleStatusChange,
+        fetchTasks
     }
   return (
       <PageContext.Provider value={values}>

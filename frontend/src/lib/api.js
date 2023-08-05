@@ -247,6 +247,30 @@ export const updateTask = (projectId,taskId,data) => {
       });
   });
 };
+export const assignTask = (projectId,taskId,data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/task/${taskId}/member/assign`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+export const unsubcribeTask = (projectId,taskId,data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/task/${taskId}/member/remove`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
 
 export const deleteTask = (projectId,data) => {
   return new Promise((resolve, reject) => {
@@ -288,6 +312,35 @@ export const createTeamMember = (projectId, data) => {
   return new Promise((resolve, reject) => {
     axios
       .post(`${import.meta.env.VITE_API_URL}/project/${projectId}/member`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+export const updateTeamMember = (projectId,memberId,data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/member/${memberId}`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+export const deleteTeamMember = (projectId,data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .delete(`${import.meta.env.VITE_API_URL}/project/${projectId}/member`, 
+        {
+          data, 
+          ...dataHeader()
+        }
+      )
       .then((res) => {
         resolve(res);
       })
