@@ -23,8 +23,6 @@ export const TaskItem = ({item}) => { // eslint-disable-next-line no-unused-vars
         )
     }))
     const colors = TaskStatusColor(item)
-    // console.log(colors)
-    // console.log(item)
     
     return (
         <Tooltip title={item.description}>
