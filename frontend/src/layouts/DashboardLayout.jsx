@@ -1,117 +1,105 @@
-import {Button, Layout, Menu, Tooltip} from 'antd'
-import {Outlet, useNavigate} from 'react-router-dom'
+import {Button, Layout} from 'antd'
+import {Outlet} from 'react-router-dom'
 import {Content, Header} from 'antd/es/layout/layout'
-import {
-    DashboardOutlined,
-    LogoutOutlined,
-    UserOutlined,
-    MenuUnfoldOutlined,
-    MenuFoldOutlined
-} from '@ant-design/icons';
-import {auth} from "../lib/services.js";
-import Sider from 'antd/es/layout/Sider.js';
-import { useState} from 'react';
-import { DarkModeSwitch } from 'react-toggle-dark-mode';
-
+import { useEffect, useState} from 'react';
+import {DarkModeSwitch} from 'react-toggle-dark-mode';
 import {DndProvider} from 'react-dnd'
 import {HTML5Backend} from 'react-dnd-html5-backend'
+import Sider from 'antd/es/layout/Sider';
+import { CustomeSider } from '../components/CustomeSider';
+import { getProjects } from '../lib/api';
+import { AppContext } from '../lib/context';
+import { auth } from '../lib/services';
+import {Notification} from '../components/Notification'
+import OutsideClickHandler from 'react-outside-click-handler';
 export const DashboardLayout = () => {
+    const theme = localStorage.getItem('theme')
     const user = auth.getUserInfo()
-    const navigate = useNavigate()
     const [collapsed, setCollapsed] = useState(false);
-    const onCollapse = () => setCollapsed(!collapsed)
-    const [isDarkMode, setDarkMode] = useState(false);
-
-
-    const toggleDarkMode = (checked) => {
-      setDarkMode(checked);
+    const [isDarkMode, setDarkMode] = useState(theme === "dark" ? true : false)
+    if (theme === "dark") {
+        document.documentElement.classList.add('dark')
+    } else {
+        document.documentElement.classList.remove('dark')
+    }
+    const toggleDarkMode = () => {
+        if (isDarkMode) {
+            document.documentElement.classList.remove('dark')
+            localStorage.setItem('theme', 'light')
+            setDarkMode(false)
+        } else {
+            document.documentElement.classList.add('dark')
+            localStorage.setItem('theme', 'dark')
+            setDarkMode(true)
+        }
     };
-    const items = [
-        {
-            key: "dashboard",
-            label: "Dashboard",
-            icon: <DashboardOutlined/>}, {
-            key: "tasks",
-            label: "Tasks",
-            icon: <DashboardOutlined/>}, {
-            key: "setting",
-            icon: <UserOutlined/>,
-            label: "User Setting"
-        },
-        // {
-        // key: "logout",
-        // icon: <LogoutOutlined />,
-        // label: "Logout",
-        // },
-    ];
-    const onClick = (e) => {
-        navigate(e.key)
+
+    const [showMenu, setShowMenu] = useState(false)
+    const handleShowMenu = () => {
+        setShowMenu(!showMenu)
+    }
+    const [projects, setProjects] = useState([])
+    const fetchProject = async (e) => {
+        try {
+            const payload = {
+                name: {
+                    contains: e
+                },
+                managerId: user.id,
+                order: {
+                    name: 'asc'
+                },
+                limit: 4,
+                start: 0
+            }
+          const response = await getProjects(payload)
+          setProjects(response.data?.data)
+        } catch (error) {
+          console.log(error)
+        }
+      }
+    useEffect(() => {
+        fetchProject()
+    },[])
+    const values = {
+        projects,
+        fetchProject
     }
 
     return (
-        <div className='h-screen dark:bg-black bg-slate-50'>
-
-            <Layout className='dark bg-slate-50'>
-                <div className='hidden md:block'>
-                <Sider collapsed={collapsed}
-                    onCollapse={onCollapse}>
-                    <div className='bg-slate-50 text-black p-2 text-center text-lg'>
-                        <h1 className='uppercase '>
-                            {
-                            user.firstName
-                        }
-                            {
-                            user.lastName
-                        }</h1>
-                    </div>
-                    <Menu className=' bg-slate-50 text-black h-full flex-row justify-center content-center items-center'
-                        onClick={onClick}
-                        mode='inline'
-                        defaultSelectedKeys={
-                            ['dashboard']
-                        }
-                        items={
-                            items.map((item) => ({key: item.key, icon: item.icon, label: item.label}))
-                        }/>
+        <AppContext.Provider value={values}>
+         <Layout className='h-screen w-screen'>
+                <Sider className='hidden md:block' placement='left' width={250} open={collapsed} onClose={() => setCollapsed(false)}
+                    style={{
+                        backgroundColor: "black"
+                    }}
+                    >
+                    <CustomeSider />
                 </Sider>
-                </div>
-                <Layout>
-                    <Header className='flex justify-between items-center  text-black bg-slate-50'>
-                        <Tooltip className="hidden md:block" placement='leftBottom'
-                            title={
-                                collapsed ? 'Show Menu' : 'Hide Menu'
-                            }
-                            color='blue'>
-                            <Button onClick={onCollapse}>
-                                {
-                                collapsed ? <MenuUnfoldOutlined/>: <MenuFoldOutlined/>
-                            } </Button>
-                        </Tooltip>
-                        
-                        <DarkModeSwitch
-                                style={{ marginBottom: '2rem' }}
-                                checked={isDarkMode}
-                                onChange={toggleDarkMode}
-                                size={20}
-                                />  
-
-                        {/* <Button onClick={tooglDarkMode} className='dark:bg-slate-950'>Dark Mode</Button> */}
-                        <h1 className='uppercase text-sm mr-2 bold sm:text-2xl'>Project Management Tool</h1>
-                        <Tooltip placement='rightTop' title='Logout' color='blue'>
-                            <Button onClick={
-                                () => navigate('/logout')
-                            }>
-                                <LogoutOutlined/>
-                            </Button>
-                        </Tooltip>
+                <OutsideClickHandler onOutsideClick={() => setShowMenu(false)}>
+                    <div 
+                        className={` ${showMenu ? "block": "hidden"} delay-300 ease-out h-screen absolute bg-black z-10 sm:hidden hover:overflow-y-scroll`}
+                    >  
+                        <CustomeSider />
+                    </div>
+                </OutsideClickHandler>
+                <Layout className='relative'>
+                    <Header className=' flex justify-between items-center text-black bg-white dark:bg-slate-800'>
+                    <Button className='md:hidden font-poppins text-start text-blue-500 border-none' onClick={handleShowMenu}>Menu</Button>
+                    <Notification />
+                    <h1 className='uppercase text-sm mr-2 bold sm:text-xl '>Project Management Tool</h1>
+                        <DarkModeSwitch className='mr-5'
+                            checked={isDarkMode}
+                            onChange={toggleDarkMode}
+                            size={30}/>
                     </Header>
-                    <Content className='m-0 p-0 bg-slate-200 h-screen rounded-xl '>
-                        <DndProvider backend={HTML5Backend}>
-                            <Outlet/>
-                        </DndProvider>
-                    </Content>
+                        <Content className='overflow-x-hidden m-0 p-0 bg-slate-200 dark:bg-slate-950 '>
+                            <DndProvider backend={HTML5Backend}>
+                                <Outlet/>
+                            </DndProvider>
+                        </Content>
                 </Layout>
             </Layout>
-        </div>
+        </AppContext.Provider>
     )
 }

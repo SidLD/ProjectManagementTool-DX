@@ -4,7 +4,14 @@ const prisma = new PrismaClient()
 
 export const getProjects = async (req, res) => {
     try {
+        //For Pagination
         const params = req.query
+        const order = params?.order
+        const limit = parseInt(params?.limit)
+        const start = parseInt(params?.start)
+        delete params.order
+        delete params.limit
+        delete params.start
         let data = null
         if(params.id){
             const permissions = await getPermission(req.user.id, params.id)
@@ -24,7 +31,12 @@ export const getProjects = async (req, res) => {
                                 lastName: true
                             }
                         }
-                    }
+                    },
+                    orderBy: order || {
+                        name: 'asc'
+                    },
+                    skip: start || 0,
+                    take : limit || 99
                 })
             }else{
                 return res.status(403).send({ok:false, message:"Access Denied"})
@@ -32,7 +44,17 @@ export const getProjects = async (req, res) => {
         }else{
             data = await prisma.project.findMany({
                 where: {
-                    managerId: req.user.id
+                    OR: [
+                        {AND: [
+                            {teamMembers: { some: { userId: req.user.id } }},
+                            {...params}
+                        ]},
+                        {AND: [
+                            {managerId: req.user.id},
+                            {...params}
+                        ]}
+                    ]
+                    
                 },
                 select:  {
                     id: true,
@@ -41,7 +63,12 @@ export const getProjects = async (req, res) => {
                     progress: true,
                     startDate: true,
                     endDate: true,
-                }
+                },
+                orderBy: order || {
+                    name: 'asc'
+                },
+                skip: start || 0,
+                take : limit || 99
             })
         }
         res.status(200).send({ok:true, data})
@@ -55,7 +82,7 @@ export const createProject = async (req, res) => {
     try {
         const userId = req.user.id
         const params = req.body
-        const project = await prisma.project.create({
+        const data = await prisma.project.create({
             data: {
                 name: params.name,
                 description: params.descripion,
@@ -69,10 +96,7 @@ export const createProject = async (req, res) => {
                 id: true
             }
         })
-        const roles = await Promise.all(
-            params?.roles?.map(async(role) => await createRole(role, project.id))
-        )
-        res.status(200).send({ok:true, data: {project, roles}})
+        res.status(200).send({ok:true, data})
     } catch (error) {
         console.log(error)
         res.status(400).send({ok:false,message: "Data Required"})

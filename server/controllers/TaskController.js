@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client"
 import { getPermission } from "../repository/RoleRepository.js"
-import { getMembership } from "../repository/TeamMemberRepository.js"
 import { createLog } from "../repository/LogRepository.js"
 import { updateProgress } from "../repository/ProjectRepository.js"
 const prisma = new PrismaClient()
@@ -30,15 +29,19 @@ export const getTask = async (req, res) => {
                             id: true
                         }
                     },
-                    task_users: {
+                    task_member: {
                         select:{
-                            firstName: true,
-                            lastName: true,
-                            id: true,
+                            user: {
+                                select:{
+                                    firstName: true,
+                                    lastName: true,
+                                    id: true,
+                                }
+                            }
                         }
                     }
                     
-                }
+                },           
             })
             res.status(200).send({ok:true, data})
         }else{
@@ -61,15 +64,16 @@ export const getAllTasks = async (req, res) => {
         const data = await prisma.task.findMany({
             where: {
                 ...query,
-                task_users :{
+                task_member :{
                     some: {
-                        id: userId
+                        userId: userId
                     }
                 }
             },
             select: {
                 id: true,
                 task: true,
+                description: true,
                 startDate: true,
                 endDate: true,
                 status: true,
@@ -79,16 +83,23 @@ export const getAllTasks = async (req, res) => {
                         id: true
                     }
                 },
-                task_users: {
+                task_member: {
                     select:{
-                        firstName: true,
-                        lastName: true,
-                        id: true,
+                        user: {
+                            select:{
+                                firstName: true,
+                                lastName: true,
+                                id: true,
+                            }
+                        }
                     }
                 }
                 
+            }, 
+            orderBy: sort || {
+                task: 'asc'
             },
-            orderBy: sort
+            skip: start || 0
         })
         const ifAccessDatas = await Promise.all(
             data.map(async (task) => {
@@ -105,6 +116,27 @@ export const getAllTasks = async (req, res) => {
         res.status(400).send({ok:false, message: error.message})
     }
 }
+export const taskCount = async (req, res) => {
+    try {
+        const userId = req.user.id
+        const params = req.query
+        let data = await prisma.task.count({
+            where: {
+                ...params,
+                task_member: {
+                    some: {
+                        userId: userId
+                    }
+                }
+                
+            },
+        })
+        res.status(200).send({ok:true, data})
+    } catch (error) {
+        console.log(error)
+        res.status(400).send({ok:false, message: error.message})
+    }    
+}
 //Only the current User Id can create their own project
 export const createTask = async (req, res) => {
     try {
@@ -112,32 +144,23 @@ export const createTask = async (req, res) => {
         const userId = req.user.id
         const params = req.body
         const permissions = await getPermission(userId, projectId);
-        if(permissions.includes("CREATE-TASK")){
-            const data = await Promise.all(
-                params.map(async (newTask) => {
-                    return await prisma.task.create({
-                        data: {
-                            task: newTask.name,
-                            startDate : new Date(newTask.startDate),
-                            description: newTask.description,
-                            endDate: new Date(newTask.endDate),
-                            status: "TO DO",
-                            task_users: {
-                                connect: newTask?.users?.map((user) => ({id: user.key})) || []
-                            },
-                            project: {
-                                connect: {id: projectId}
-                            }
-                        }
-                    })
-                })
-            )
-            const logs  = await Promise.all(
-                data.map( async (createdTask) => {
-                    if(createdTask){
-                        return await createLog({taskId:createdTask.id, userId:userId})
+        if(permissions.includes("EDIT-PROJECT")){
+            const data = await prisma.task.create({
+                data: {
+                    task: params.name,
+                    startDate : new Date(params.startDate),
+                    description: params.description,
+                    endDate: new Date(params.endDate),
+                    status: "TO DO",
+                    task_member: {
+                        connect: params?.members?.map((member) => ({id: member.id})) || []
+                    },
+                    project: {
+                        connect: {id: projectId}
                     }
-            }))
+                }
+            })
+            const logs = await createLog({taskId:data.id, userId:userId})
             
             res.status(200).send({ok:true, data, logs})
         }else{
@@ -213,42 +236,55 @@ export const deleteTask = async (req, res) => {
         res.status(400).send({ok:false,message: "Data Required"})
     }
 }
-export const updateTaskUser = async (req, res) => {
+export const subcribeTask = async (req, res) => {
     try {
-        const {projectId, taskId, method} = req.params
+        const {projectId, taskId} = req.params
         const params = req.body
         const permissions = await getPermission(req.user.id, projectId);
         if(permissions.includes("EDIT-TASK")){
-            if(method === 'assign'){
-                const isExist = await prisma.task.findFirst({
-                    where: {id: taskId},
+            const task = await prisma.task.findFirst({
+                where: {id: taskId},
+                select: {
+                    task_member: true
+                }
+            })
+            let membersIds = task.task_member.map((member) => member.id) || []
+            if(membersIds.includes(params.memberId)){
+                return res.status(400).send({ok:false,message: "User Alread assigned to the Task"})
+            }else{
+                membersIds.push(params.memberId)
+                const data = await prisma.task.update({
+                    where: {
+                        id: taskId
+                    },
+                    data: {
+                        task_member:{
+                            set: membersIds.map((ids) => ({id: ids})) || []
+                        }
+                    }
+                })
+                const newMember = await prisma.teamMember.findFirst({
+                    where: {id: params.memberId},
                     select: {
-                        task_users: {
+                        user: {
                             select: {
-                                id: true
+                                firstName: true,
+                                lastName: true
                             }
                         }
                     }
                 })
-                const taskUsers = isExist?.task_users.map(user => user.id)
-                const newUser = params.task_users.connect[params.task_users.connect.length-1]
-                const error = (taskUsers.includes(newUser.id))
-                if(error){
-                  return res.status(400).send({ok:false, message: "User Already Exist"})
+                if(data) {
+                    await createLog({
+                        taskId:data.id, 
+                        userId:req.user.id, 
+                        params: {
+                            addUser: newMember.user
+                        }
+                    })
                 }
+                res.status(200).send({ok:true, data})
             }
-            const data = await prisma.task.update({
-                where: {
-                    id: taskId
-                },
-                data: {
-                    ...params
-                }
-            })
-            if(data) {
-                await createLog({taskId:data.id, userId:req.user.id, params: {task_users:method}})
-            }
-            res.status(200).send({ok:true, data})
         }else{
             res.status(400).send({ok:false,message: "Access Denied"})
         }
@@ -256,4 +292,58 @@ export const updateTaskUser = async (req, res) => {
         console.log(error)
         res.status(400).send({ok:false,message: "Data Required"})
     }
+}
+export const unsubcribeTask = async (req, res) => {
+    try {
+        const {projectId, taskId} = req.params
+        const params = req.body
+        const permissions = await getPermission(req.user.id, projectId);
+        if(permissions.includes("EDIT-TASK")){
+            const task = await prisma.task.findFirst({
+                where: {id: taskId},
+                select: {
+                    task_member: true
+                }
+            })
+            let task_members = task.task_member.filter((member) => member.id != params.memberId)
+            const data = await prisma.task.update({
+                where: {
+                    id: taskId
+                },
+                data: {
+                    task_member:{
+                        set: task_members.map((member) => ({id: member.id})) || []
+                    }
+                }
+            })
+            const removeMember = await prisma.teamMember.findFirst({
+                where: {id: params.memberId},
+                select: {
+                    user: {
+                        select: {
+                            firstName: true,
+                            lastName: true
+                        }
+                    }
+                }
+            })
+            if(data) {
+                await createLog({
+                    taskId:data.id, 
+                    userId:req.user.id, 
+                    params: {
+                        removeUser: removeMember.user
+                    }
+                })
+            }
+            res.status(200).send({ok:true, data})
+            
+            
+        }else{
+            res.status(400).send({ok:false,message: "Access Denied"})
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(400).send({ok:false,message: "Data Required"})
+    }   
 }

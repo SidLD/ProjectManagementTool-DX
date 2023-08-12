@@ -68,20 +68,25 @@ export const register = async (req, res) => {
 export const getUsers = async (req, res) => {
     try {
         const params = req.query
+        const order = params?.order
+        const limit = parseInt(params?.limit)
+        const start = parseInt(params?.start)
+        delete params.order
+        delete params.limit
+        delete params.start
         const data = await prisma.user.findMany({
-            where: {
-                OR: [
-                    {email: params.email},
-                    {firstName: params.firstName},
-                    {lastName: params.lastName}
-                ]
-            },
+            where: params,
             select: {
                 firstName: true,
                 lastName: true,
                 email: true,
                 id : true,
             },
+            orderBy: order || {
+                email: 'asc'
+            },
+            skip: start || 0,
+            take : limit || 99
         })
         res.status(200).send({ok:true,data})
     } catch (error) {

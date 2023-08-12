@@ -62,7 +62,6 @@ export const getProjectUpdatePermission = async (projectId, userId) => {
                 }
             }
         })
-        console.log(permissions)
         return false
     }
 }
@@ -78,28 +77,19 @@ export const getPermission = async (userId, projectId) => {
         })
         if(ifManager){
             return [
-                'VIEW-PROJECT',
                 'EDIT-PROJECT',
-                'DELETE-PROJECT',
                 'EDIT-TASK',
-                'DELETE-TASK',
-                'CREATE-TASK',
                 'VIEW-TASK',
-                'VIEW-MEMBER',
-                'ADD-MEMBER',
-                'DELETE-MEMBER',
                 'EDIT-MEMBER',
-                'ADD-ROLE',
-                'DELETE-ROLE',
+                'VIEW-MEMBER',
                 'EDIT-ROLE',
                 'VIEW-ROLE',
-                
             ]
         }else{
-            const permissions = await prisma.teamMember.findFirst({
+            const member = await prisma.teamMember.findFirst({
                 where: {
                     projectId: projectId,
-                    userId : userId
+                    userId : userId,
                 },
                 select: {
                     role: {
@@ -114,7 +104,17 @@ export const getPermission = async (userId, projectId) => {
                     }
                 }
             })
-            const result = permissions.role.role_permissions.map(temp => temp.name)
+            const result = member?.role?.role_permissions.map(temp => temp.name) || []
+            /**
+             * VIEW PROJECT should only be available to the member, but some member might lose their role
+                when manager remove delete role without reasigning them first
+                A member can be part of the project but does not have any role
+                To solve the problem, I must check first wether the member is indeed a member
+                and if it is true, then add VIEW PROJECT permission
+             */
+            if(member){
+                result.push("VIEW-PROJECT")
+            }
             return result
         }
     } catch (error) {

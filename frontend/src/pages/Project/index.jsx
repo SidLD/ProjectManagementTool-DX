@@ -1,101 +1,89 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { PageContext } from '../../lib/context'
 import { ProjectView } from './view'
 import { useNavigate, useParams } from 'react-router-dom'
 import { message } from 'antd'
 import moment from "moment";
-import { createRole, createTasks, createTeamMember, deleteProject, deleteRole, getAllPermission, getPermission, getProjects, getRoles, getTasks, getTeamMembers, updateRole, updateTask } from '../../lib/api'
-
+import { 
+  createTasks, 
+  getAllPermission, 
+  getPermission, 
+  getProjects, 
+  getRoles, 
+  getTasks, 
+  getTeamMembers } from '../../lib/api'
+  import io from "socket.io-client";
+  //Need to add this before the component decleration
+  const socket = io(`${import.meta.env.VITE_API_URL}`,{
+           transports: ["websocket"] });
 export const Project = () => {
     const {projectId} = useParams()
+    const [dropStatus, setDropStatus] = useState(null)  //This state helps to render task list when succesfully droped on the other side
     const [messageAPI, contextHolder] = message.useMessage()
     const [loader, setLoader] = useState(true)
     const [project, setProject] = useState({})
     const [permission, setPermission] = useState([])
-    const [open, setOpen] = useState(false);
     const navigate = useNavigate()
     const [roles, setRoles] = useState([])
     const [team, setTeam] = useState([])
-    const [tasks, setTasks] = useState([])
-    const roleInput = useRef()
-    const [showRoleModal, setShowRoleModal] = useState()
     const [allPermission, setAllPermission] = useState([])
-    
-  const [selectedPermission, setSelectedPermission] = useState([])
-    const fetchTasks = async (status) => {
+    const [query, setQuery] = useState("")
+    const handleQueryChange = (e) => {
+      setQuery(e)
+    } 
+    const fetchTasks = async (data) => {
       try {
-        const response = await getTasks(projectId, {status: status})
-        setTasks(response.data.data)
+        const payload = {
+          ...data,
+          projectId
+        }
+        const response = await getTasks(projectId, payload)
+        return response.data.data
       } catch (error) {
         console.log(error)
         return []
       }
     }
-    const fetchTeam = async () => {
+    const fetchTeam = async (data) => {
       try {
         const payload = {
-          projectId,
-          sort: {
-            user: {
-              firstName: 'desc'
-            }
-          },
-          start: 0,
-          limit : 10
-      }
+          ...data,
+          projectId, 
+        }
         const response = await getTeamMembers(payload)
         setTeam(response.data.data)
       } catch (error) {
         console.log(error)
       }
     }
-    const handleSubmitTask = async (e) => {
+    const submitTask = async (e) => {
       try {
-        const payload = [
-          {
+        const payload = {
             name: e.name,
             description: e.description,
-            users: e?.selectedUserForTask || [],
+            members: e?.selectedMemberForTask || [],
             startDate: new Date(e.startEndTime[0]),
             endDate: new Date(e.startEndTime[1])
-          }
-        ]
+        }
         const response = await createTasks(projectId, payload)
         if(response.data.ok){
-          
-          await fetchTasks()
+          setDropStatus("Render")
           showMessage('success', 'Success')
-          setIsModalOpen(false)
+          return true
         }
       } catch (error) {
         console.log(error)
+        
+        return false
       }
     }
-    //The server accept arrays
-    const addTeamMember = async (data) => {
-      try {
-        const payload = [
-          {
-            ...data
-          }
-        ]
-        const response = await createTeamMember(projectId, payload)
-        if(response.data.ok){
-          showMessage('success',"Success")
-          fetchTeam()
-        }else{
-          showMessage('warning',"Something Went Wrong")
-        }
-      } catch (error) {
-        showMessage('warning',error.response.data.message)
-      }
-    }
-    const fetchRoles = async () => {
+    const fetchRoles = async (data) => {
       try {
         const payload = {
-          projectId: projectId
+          ...data,
+          projectId, 
         }
-        const response = await getRoles(payload)
+        const response = await getRoles(payload)    
         setRoles(response.data.data)
       } catch (error) {
         console.log(error)
@@ -130,50 +118,10 @@ export const Project = () => {
         showMessage('warning', 'ERROR DIDI')
       }
     }
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const showModal = () => {
-      setIsModalOpen(true);
-    };
-    const handleCancel = () => {
-      setIsModalOpen(false);
-    };
-    const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
-    const showDeleteModal = () => {
-      setIsModalOpenDelete(true);
-    };
-    const handleDeleteCancel = () => {
-      setIsModalOpenDelete(false);
-    };
-    const showDrawer = () => {
-      setOpen(true);
-    };
-    const onClose = () => {
-      setOpen(false);
-    };
     //This Limit the task start time, since task should not have start time before the project start time
     const disabledDate = (current) => {
       let customDate = new Date(project.startDate);
       return current && current < moment(customDate, "YYYY-MM-DD");
-    }
-    const handleDeleteProject = async (e) => {  
-      try {
-        const name = project.name
-        if(name.trim() === e.name){
-          const response = await deleteProject({projectId: projectId})
-          if(response.data.ok){
-            showMessage('success', 'Success and Redirecting')
-            setTimeout(() => {
-              navigate('/dashboard')
-            }, 1000)
-          }else{
-            showMessage('warning', 'Something Went Wrong')
-          }
-        }else{
-          showMessage('warning', 'Title Does not Match')
-        }
-      } catch (error) {
-        console.log(error.response.data)
-      }
     }
     const showMessage = (type, content) => {
       messageAPI.open({
@@ -181,89 +129,7 @@ export const Project = () => {
         content,
       })
     }
-    const handleStatusChange = async (task, updateTo) => {
-      try {
-        const payload = {
-          status:updateTo
-        }
-        const response = await updateTask(task.project.id, task.id, payload)
-        if(response.data.ok){
-          showMessage('success', `Set Status to ${updateTo}`)
-          await fetchProject()
-          await fetchTasks()
-          
-        }else{
-          showMessage('warning', response.data.message)
-        }
-      } catch (error) {
-        console.log(error)
-        showMessage('warning', error.response.data.message)
-      }
-    }
     //Edit Role & Member Role Functions
-    const handleRemoveRole = async (data) => {
-      try {
-        const payload = {
-          roleId: data.id
-        }
-        const response = await deleteRole(projectId, payload)
-        if(response.data.ok){
-          showMessage('success', 'Success')
-          await fetchRoles()
-        }
-      } catch (error) {
-        console.log(error)
-        showMessage('warning', error.response.data.message)
-      }
-    }
-    const handleUpdateRole = async (data) => {
-      try {
-        const payload = {
-          name: data.newName,
-          permissions: data.newPermissions
-        }
-        const response = await updateRole(projectId,data.roleId.id, payload)
-        if(response.data.ok){
-          showMessage('success', 'Success')
-          await fetchRoles()
-        }
-      } catch (error) {
-        console.log(error)
-        showMessage('warning', error.response.data.message)
-      }
-    }
-    const onChangePermission = (e) => {
-      setSelectedPermission(e)
-    }
-    const handleOkRoleModal = async () => {
-      if(roleInput.current.value.trim() === "" || selectedPermission.length < 1){
-        showMessage('warning', 'Please Input Data')
-      }else{
-        const payload = {
-          name : roleInput.current.value,
-          role_permissions: selectedPermission
-        }
-        try {
-         const response = await createRole(projectId, payload)
-          if(response.data.ok){
-            showMessage('success', "Success")
-            setShowRoleModal(false)
-            setSelectedPermission([])
-            await fetchRoles()
-          }else{
-            showMessage('warning', 'Something Went Wrong')
-          }
-        } catch (error) {
-        showMessage('warning', error.response.data.message)
-        }
-      }
-    };
-    const handleShowRoleModal  = () => {
-      setShowRoleModal(true)
-    }
-    const handleCancelRoleModal = () => {
-      setShowRoleModal(false)
-    }
     const fetchAllPermission = async () => {
       try {
         const response = await getAllPermission()
@@ -280,42 +146,36 @@ export const Project = () => {
       fetchTeam()
       fetchTasks()
       setLoader(false)
-    },[])
+      socket.on('newUser', async () => {
+        await fetchTeam()
+      })
+      socket.on('removeUser', async () => {
+        await fetchTeam()
+      })
+        // console.log("Render Outside")
+    },[socket])
 
+    //All data that requires the other component to render is passed here
     const values = {
+      fetchTeam,
+      fetchList: fetchTasks,
+      fetchRoles,
+      showMessage,
+      updateData: fetchProject,
+      navigate,
       disabledDate,
-      handleDeleteProject,
-      isModalOpenDelete,
-      showDeleteModal,
-      handleDeleteCancel,
-      open,
-      showDrawer,
-      onClose,
-      handleCancel,
-      handleSubmitTask,
-      showModal,
-      isModalOpen,
+      submitTask, 
+      setDropStatus,
+      handleQueryChange,
+      query,
+      dropStatus,
       contextHolder,
       loader,
-      project,
       permission,
       roles,
-      fetchTeam,
-      fetchTasks,
-      showMessage,
-      addTeamMember,
       team,
-      handleStatusChange,
       projectId,
-      tasks,
-      handleUpdateRole,
-      handleRemoveRole,
-      onChangePermission,
-      roleInput,
-      showRoleModal,
-      handleOkRoleModal,
-      handleShowRoleModal,
-      handleCancelRoleModal,
+      project,
       allPermission
     }
   return (

@@ -1,21 +1,28 @@
 import { PrismaClient } from "@prisma/client"
 const prisma = new PrismaClient()
 export const defaultPermission = [
-    'VIEW-PROJECT',
-    'EDIT-PROJECT',
-    'DELETE-PROJECT',
-    'EDIT-TASK',
-    'DELETE-TASK',
-    'CREATE-TASK',
-    'VIEW-TASK',
-    'VIEW-MEMBER',
-    'ADD-MEMBER',
-    'DELETE-MEMBER',
-    'EDIT-MEMBER',
-    'ADD-ROLE',
-    'DELETE-ROLE',
-    'EDIT-ROLE',
-    'VIEW-ROLE'
+    {
+        name: 'EDIT-PROJECT',
+        label: "Allows User to MANAGE PROJECT AND TASKS."
+    },{
+        name: 'EDIT-TASK',
+        label: "Allows User to edit TASK he is ASSIGNED to."
+    },{
+        name: 'VIEW-TASK',
+        label: "Allows to VIEW All Task in the PROJECT."
+    },{
+        name: 'EDIT-MEMBER',
+        label: "Allow user to ADD and REMOVE MEMBERS."
+    },{
+        name: 'VIEW-MEMBER',
+        label: "Allows user to VIEW ALL MEMBER in the Project."
+    },{
+        name:'EDIT-ROLE',
+        label: "Allow user to ADD and Remove Roles in the Project."
+    },{
+        name:'VIEW-ROLE',
+        label: "Allows user to VIEW ALL ROLE & PERMISSIONS in the Project."
+    }
 ]
 
 export const generateDefaultPermissions = async () => {

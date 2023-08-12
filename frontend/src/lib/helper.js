@@ -14,14 +14,14 @@ export const TaskStatusColor = (item) => {
             nextColor = "bg-green-500"
             backGroundColor = "bg-yellow-500"
             text = "Click to Complete Task"
-            border = "border-l-yellow-500"
+            border = "border-b-8 border-yellow-500"
             break;
         case "TO DO": 
             color = "text-blue-500"
             backGroundColor = "bg-blue-500"
             nextColor = "bg-yellow-500"
             text = "Click to set In Progress Task"
-            border = " border-l-blue-500"
+            border = " border-b-8 border-blue-500"
             break;
 
         default: 
@@ -29,7 +29,7 @@ export const TaskStatusColor = (item) => {
             backGroundColor = "bg-green-500"
             nextColor = "bg-blue-500"
             text = "Click to set To Do Task"
-            border = " border-l-green-500"
+            border = " border-b-8 border-green-500"
             break;
     }
     return {

@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { getPermission } from "../repository/RoleRepository.js"
+import { isOnline } from "../lib/ClientBuckets.js"
 const prisma = new PrismaClient()
 
 export const addTeamMember = async (req, res) => {
@@ -7,7 +8,7 @@ export const addTeamMember = async (req, res) => {
         const params = req.body
         const projectId = req.params.projectId
         const permissions = await getPermission(req.user.id, projectId)
-        if(permissions.includes("ADD-MEMBER")){
+        if(permissions.includes("EDIT-MEMBER")){
             let error = false
             const data = await Promise.all(
                 params.map(async (member) => {
@@ -90,12 +91,12 @@ export const addTeamMember = async (req, res) => {
 export const getTeamMembers = async (req, res) => {
     try {
         let query = req.query
-        const limit = parseInt(query.limit)
+        const limit = parseInt(query.limit) 
         const start = parseInt(query.start)
-        const sort = query.sort
+        const order = query.order
         delete query.start
         delete query.limit
-        delete query.sort
+        delete query.order
         const permissions = await getPermission(req.user.id, query.projectId)
         if(permissions.includes("VIEW-MEMBER") || permissions.includes("DELETE-MEMBER")){
             const data = await prisma.teamMember.findMany({
@@ -117,13 +118,23 @@ export const getTeamMembers = async (req, res) => {
                     }
 
                 },
-                orderBy: {...sort},
-                take: limit,
-                skip: start
+                orderBy: order || {
+                    user: {
+                        firstName: 'asc'
+                    }
+                },
+                skip: start || 0,
+                take : limit || 99
             })
+            await Promise.all(
+                data.map((member) => {
+                 member.isActive =  isOnline(member.user.id)
+                 return member
+                }
+            ))
             res.status(200).send({ok:true, data})   
         }else{
-            res.status(400).send({ok:false, message:"Permission Denied"})
+            res.status(403).send({ok:false, message:"Permission Denied"})
         }
     } catch (error) {
         console.log(error)

@@ -96,7 +96,22 @@ export const getRoles = (data) => {
       });
   });
 }
-
+export const getUserRole = (data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/user/role`, 
+        {
+          params: data,
+          ...dataHeader()
+        })
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
 export const createRole = (projectId, data) => {
   return new Promise((resolve, reject) => {
     axios
@@ -121,7 +136,6 @@ export const updateRole = (projectId, roleId, data) => {
       });
   });
 };
-
 export const deleteRole = (projectId, data) => {
   return new Promise((resolve, reject) => {
     axios
@@ -206,6 +220,22 @@ export const getTasks = (projectId, data) => {
       });
   });
 };
+export const getTaskCount = (data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/task/count`, 
+        {
+          params: data,
+          ...dataHeader()
+        })
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
 export const getAllTasks = (data) => {
   return new Promise((resolve, reject) => {
     axios
@@ -247,10 +277,10 @@ export const updateTask = (projectId,taskId,data) => {
       });
   });
 };
-export const assignTask = (projectId,taskId,data) => {
+export const subcribeTask = (projectId,taskId,data) => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/task/${taskId}/member/assign`, data, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/task/${taskId}/member/subcribe`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -262,7 +292,7 @@ export const assignTask = (projectId,taskId,data) => {
 export const unsubcribeTask = (projectId,taskId,data) => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/task/${taskId}/member/remove`, data, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/task/${taskId}/member/unsubcribe`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -412,4 +442,39 @@ export const getComment = (taskId, data) => {
       });
   });
 };
+export const getReplyComment = (commentId, data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/task/comment/${commentId}/reply`, 
+        {
+          params: data,
+          ...dataHeader()
+        })
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
 // END OF LOGS API
+
+//START OF Mention API
+export const getMention = (data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/mention`, 
+        {
+          params: data,
+          ...dataHeader()
+        })
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+//END of Mention API

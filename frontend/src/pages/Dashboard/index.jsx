@@ -9,8 +9,15 @@ export const Dashboard = () => {
     const [loader, setLoader] = useState(true)
     const [messageAPI, contextHolder] = message.useMessage()
     const [projects, setProjects] = useState([])
-    const onSearch = (value) => console.log(value);
+    const [order, setOrder] = useState(false)
+    const [query, saveQuery] = useState("")
     const navigate = useNavigate()
+
+    const toggleOrder = async () => {
+        setOrder(!order)
+        await fetchProjects()
+    }
+
     const getUserPermission = async(projectId) => {
         try {
             const payload = {
@@ -22,14 +29,32 @@ export const Dashboard = () => {
           return error
         }
     }   
-    const fetchProjects = async () => {
-        try {   
-            const response = await getProjects({})
+    
+    const onSearch = async (e) => {
+        saveQuery({
+            name : {
+                contains: e.target.value
+            }
+        })
+        await fetchProjects()
+    };
+    const fetchProjects = async () => setTimeout(async () => {
+        try {  
+            //Fetch User Project and other project whome the user is associated to
+            const payload = {
+                 ...query,
+                 order: {
+                     name: order ? 'asc' : 'desc'
+                 },
+                 limit: 6,
+                 start: 0
+             }
+            const response = await getProjects(payload)
             setProjects(response.data?.data)
         } catch (error) {
             showMessage('warning', "Server Error")
         }
-    }
+    }, 1000)
     const showMessage = (type, content) => {
         messageAPI.open({
           type,
@@ -37,7 +62,24 @@ export const Dashboard = () => {
         })
       }
     useLayoutEffect(() => {
-        fetchProjects()
+        //This will allow the page to load faster when first called
+        const initProject = async() => {
+            try {  
+                //Fetch User Project and other project whome the user is associated to
+                const payload = {
+                     order: {
+                         name: order ? 'asc' : 'desc'
+                     },
+                     limit: 6,
+                     start: 0
+                 }
+                const response = await getProjects(payload)
+                setProjects(response.data?.data)
+            } catch (error) {
+                showMessage('warning', "Server Error")
+            }
+        }
+        initProject()
         setLoader(false)
     }, [])
 
@@ -47,7 +89,9 @@ export const Dashboard = () => {
         loader,
         contextHolder,
         projects,
-        getUserPermission
+        getUserPermission,
+        toggleOrder,
+        order
     }
     return (
         <PageContext.Provider value={values}>

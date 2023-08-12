@@ -9,6 +9,11 @@ export const getAllPermissions = async (req, res) => {
             {
                 orderBy : {
                     name: 'desc'
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    label: true,
                 }
             }
         )
@@ -41,7 +46,10 @@ export const generatePermissions = async (req, res) =>{
         })
         if(ifAdmin){
             const initPermissions = await prisma.permission.createMany({
-                data: defaultPermission.map((permission) => ({name: permission})) || []
+                data: defaultPermission.map((permission) => ({
+                    name: permission.name,
+                    label: permission.label
+                })) || []
             }) 
             res.status(200).send({ok:true, data: initPermissions})
         }else{

@@ -9,14 +9,17 @@ export const createLog = async ({taskId, userId, params}) => {
         const ifStartDate = params.startDate ? true : false
         const ifEndDate = params.endDate ? true : false
         const ifDescription = params.description ? true: false
-        const ifTaskUsers = params.task_users ? true : false
+        const ifAddUser = params.addUser ? true : false
+        const removeUser = params.removeUser ? true : false
 
         detail += ifUpdateStatus ? `Update Status` : ""
         detail += ifTask ? `Update Task` : ""
         detail += ifStartDate ? `Update Start Date` : ""
         detail += ifEndDate ? `Update End Date` : ""
         detail += ifDescription ? `Update Description` : ""
-        detail += ifTaskUsers ? `${params.task_users} User` : ""
+        detail += ifAddUser ? `User ${params.addUser.firstName} ${params.addUser.lastName} Added` : ""
+        detail += removeUser ? `User ${params.removeUser.firstName} ${params.removeUser.lastName} Removed` : ""
+
     }else{
         detail = `Create Task`
     }

@@ -20,10 +20,44 @@ import teamMemberAPI from './api/TeamMember.js'
 import permissionAPI from './api/Permission.js'
 import logAPI from './api/Log.js'
 import commentAPI from './api/Comment.js'
+import mentionAPI from './api/Mention.js'
 /* Uncomment this to Generate All Permissions - Cid
 import { generateDefaultPermissions } from './repository/PermissionRepository.js'
 generateDefaultPermissions()
 */
+// Socket IO for Real Time HTTPS
+import { createServer } from 'http'
+import { Server } from 'socket.io'
+const httpServer = createServer(app);
+const io = new Server(httpServer, { cors: { origin: '*' } });
+
+import { addUser, removeUser } from './lib/ClientBuckets.js'
+io.on("connection", (socket) => {
+    socket.on("login", (userId) => {
+        console.log(`⚡: A New User Login ${userId}`);
+        addUser(userId)
+        socket.broadcast.emit('newUser')
+    })
+    socket.on('logout', (userId) => {
+        removeUser(userId)
+        console.log(`⚡: A  User Logout ${userId}`);
+        socket.broadcast.emit('removeUser')
+    })
+    socket.on('createMention', (data) => {
+        socket.broadcast.emit('newMention', 'From Server')
+    })
+    socket.on("createComment", (data) => {
+        console.log(`⚡: Create Comment ${data}`);
+        socket.broadcast.emit('newComment', "From Server")
+    })
+    socket.on("createTask", (data) => {
+        console.log(`⚡: A New Comment ${data}`);
+        socket.broadcast.emit('newTask', "From Server")
+    })
+});
+
+//END of SOCKET IO
+app.use(mentionAPI)
 app.use(commentAPI)
 app.use(logAPI)
 app.use(permissionAPI)
@@ -47,6 +81,7 @@ app.delete('*', (req, res) => {
 })
 
 const port = process.env.PORT
-app.listen(port, () => 
-    console.log("🔥Server is running on http:localhost:"+port)
-);
+
+httpServer.listen(port, () => {
+    console.log(`Running at port  ${port}`)
+});

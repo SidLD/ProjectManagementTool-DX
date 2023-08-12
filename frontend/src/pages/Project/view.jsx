@@ -1,40 +1,43 @@
 import { useContext, useState } from 'react'
 import { PageContext } from '../../lib/context'
 import Search from 'antd/es/input/Search'
-import { Button, Checkbox, Col, DatePicker, Drawer, Form, Input, Modal, Progress, Row, Select, Table, Tag, Tooltip } from 'antd'
-import { SearchBar } from './components/SearchBar'
-import { RoleTable } from './components/RoleTable'
-import { UserTable } from './components/UserTable'
-import { CustomeDate } from '../../components/CustomeDate'
-import {
-  DeleteOutlined
-} from '@ant-design/icons';
+import { Button,DatePicker, Drawer, Form, Input, Modal, Select, Table } from 'antd'
+
 import { TaskList } from '../../components/TaskList'
-import { CustomeTable } from '../../components/CustomeTable'
+import { ProjectDetail } from './components/ProjectDetail'
+import { ProjectSetting } from './components/ProjectSetting'
 
 export const ProjectView = () => {
-  const {contextHolder, loader, project, showModal, handleCancel, isModalOpen, handleSubmitTask,
-          isModalOpenDelete, showDeleteModal, handleDeleteCancel, handleDeleteProject, disabledDate,
-          open, showDrawer, onClose, roles, team, 
-          roleInput, onChangePermission, showRoleModal, handleOkRoleModal, handleShowRoleModal,
-          handleCancelRoleModal, allPermission, projectId
+  const {contextHolder, loader, submitTask,
+          disabledDate, team, handleQueryChange
           } = useContext(PageContext)
-  
-  const [selectedUserForTask, setSelectedUserForTask] = useState([])
+  const [open, setOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false)
+  const showDrawer = () => {
+    setOpen(true);
+  };
+  const onClose = () => {
+    setOpen(false);
+  };
+  const [selectedMemberForTask, setSelectectedMemberForTask] = useState([])
   const { RangePicker } = DatePicker;
-  const removeUserForTask = (id) => {
-    setSelectedUserForTask(selectedUserForTask.map(user => user.user.id !== id))
+  const removeMember = (id) => {
+    setSelectectedMemberForTask(selectedMemberForTask.map(member => member.id !== id))
   }
   const handleTaskFormOnSubmit = (e) => {
-    handleSubmitTask({...e, selectedUserForTask})
+    if(submitTask({...e, selectedMemberForTask})) {
+      setShowModal(false)
+    }
   }
-  const handleSelectUserForCreateTaskSelect = (e) => {
-    const selectedUser = team?.filter(user => user.user.id === e)
-    setSelectedUserForTask([...selectedUserForTask, {
-      key: selectedUser[0]?.user.id,
-      name: `${selectedUser[0]?.user.firstName} ${selectedUser[0]?.user.lastName}`,
-      role: selectedUser[0]?.role.name,
-      action: (<Button onClick={() => removeUserForTask(selectedUser[0]?.user.id)}>Remove</Button>)
+  //Didi guinKuha ko an team sa index tapos guinBiling ko an data based sa member ID na guinPasa tikang sa Select Search
+  const handleMemberForTask = (e) => {
+    const selectedMember = team?.filter(member => member.id === e)
+    setSelectectedMemberForTask([...selectedMemberForTask, {
+      key: selectedMember[0]?.id,
+      id: selectedMember[0]?.id,
+      name: `${selectedMember[0]?.user.firstName} ${selectedMember[0]?.user.lastName}`,
+      role: selectedMember[0]?.role.name,
+      action: (<Button onClick={() => removeMember(selectedMember[0]?.id)}>Remove</Button>)
     }])
   }
   const selectedUserTaskTableColumn = [
@@ -57,52 +60,30 @@ export const ProjectView = () => {
   return (
     !loader && 
       <div >{contextHolder}
-        <div className='xl:flex xl:w-full xl:h-full'>
-          <div className='sm:hidden bottom-200 left-2  m-2 flex justify-between items-center'>
-              <Search />
-              <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-blue-500'  onClick={showModal}>Create Task</Button>
-              <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Setting</Button>
+        <div className='flex-row xl:w-full xl:h-full'>
+          <div className='bottom-200 left-2  m-2 flex justify-between items-center'>
+              <Search onSearch={handleQueryChange} />
+              <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-blue-500'  onClick={() => setShowModal(true)}>Create Task</Button>
+              <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Detail</Button>
           </div>
-          <div className='xl:w-1/3 font-poppins p-2'> 
-            <div className='font-poppins bg-white p-2 rounded-2xl'>
-              <h2>Title: {project.name}</h2>
-              <p>Description: {project.description}</p>
-              <p>Manager: {`${project?.manager?.firstName} ${project?.manager?.lastName}`}</p>
-              <p>Date:</p>
-              <div className='flex w-full justify-between'>
-                <CustomeDate borderColor="border-blue-800" title="Start Date" color="text-blue-500" date={project.startDate} />
-                <CustomeDate borderColor="border-yellow-500" title="Due Date" color="text-yellow-500" date={project.endDate}/>
+          <div className='w-full'>
+            {!loader && <div className='m-2 md:grid-cols-3 md:mt-2 grid grid-cols-1 gap-3 rounded-lg font-poppins h-fit' >
+              <div className='bg-slate-300 p-2 rounded'>
+                <h3 className='text-center font-bold'>To Do Tasks</h3>
+                <TaskList title={"TO DO"}/>
               </div>
-              <Tooltip className='flex my-4 justify-center items-center' title={`${project.progress} %`} placement="right">
-                <p className='text-left '>Progress</p>
-                <Progress className='w-3/4 ml-2 my-auto' percent={project.progress}/>
-              </Tooltip>
-              {!loader &&  <CustomeTable projectId={projectId} users={team} />}
-            </div>
-          </div>
-          <div className='m-2 xl:w-2/3 xl:h-full'>
-            <div className='hidden bottom-200 left-2  sm:flex justify-between items-center'>
-              <Search />
-              <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-blue-500'  onClick={showModal}>Create Task</Button>
-              <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Setting</Button>
-          </div>
-          {!loader && <div className=' md:grid-cols-3 md:mt-2 grid grid-cols-1 gap-3 rounded-lg font-poppins h-fit' >
-            <div className='bg-white rounded-t-lg'>
-              <h3 className='text-center font-bold mt-2'>To Do Tasks</h3>
-              <TaskList title={"TO DO"}/>
-            </div>
-            <div className='bg-white rounded-t-lg'>
-              <h3 className='text-center font-bold mt-2'>In Progress Tasks</h3>
-              <TaskList title={"IN PROGRESS"}/>
-            </div>
-            <div className='bg-white rounded-t-lg'>
-              <h3 className='text-center font-bold mt-2'>Complete Tasks</h3>
-              <TaskList title={"COMPLETED"}/>
-            </div>
+              <div className='bg-slate-300 p-2 rounded'>
+                <h3 className='text-center font-bold'>In Progress Tasks</h3>
+                <TaskList title={"IN PROGRESS"}/>
+              </div>
+              <div className='bg-slate-300 p-2 rounded'>
+                <h3 className='text-center font-bold'>Complete Tasks</h3>
+                <TaskList title={"COMPLETED"}/>
+              </div>
           </div>}
-          </div>
         </div>
-      <Modal title="Create Task" open={isModalOpen} onCancel={handleCancel} footer={null}>
+      </div>
+      <Modal title="Create Task" open={showModal} onCancel={() => setShowModal(false)} footer={null}>
           <Form
             onFinish={handleTaskFormOnSubmit}
             >
@@ -133,93 +114,27 @@ export const ProjectView = () => {
               <Form.Item>
                 {!loader && <Select
                   style={{width:200}}
-                  onSelect={handleSelectUserForCreateTaskSelect}
+                  onSelect={handleMemberForTask}
                   options={team?.map(item => (
                     {
-                        value: item.user.id,
+                        value: item.id,
                         label: `${item.user.firstName} ${item.user.lastName} - ${item?.role?.name}`
                     }
                 ))}
                 />}
               </Form.Item>
-              {selectedUserForTask.length >= 1 && <Table 
-                dataSource={selectedUserForTask} 
+              {selectedMemberForTask.length >= 1 && <Table 
+                dataSource={selectedMemberForTask} 
                 columns={selectedUserTaskTableColumn}/>}
           </div>
           <Button className='flex justify-center' htmlType='submit'>Submit</Button>
             
           </Form>
       </Modal>
-      <Modal title="Delete Project" open={isModalOpenDelete} onCancel={handleDeleteCancel}
-        footer={null}
-      >
-        <Form onFinish={handleDeleteProject}>
-          <p className='text-red-700'>Type The Project Name to Confirm Delete this Project</p>
-          <Form.Item name="name" label="Project Name" 
-            rules={[{ required: true, message: "Please add Title" }]}>
-            <Input />
-          </Form.Item>
-          <Button  htmlType='submit' danger type='primary'>Confirm</Button>
-        </Form>
-      </Modal>
-      <Modal
-              title="Create Role"
-              open={showRoleModal}
-              onOk={handleOkRoleModal}
-              onCancel={handleCancelRoleModal}
-              okType="default"
-              okText="Add Role"
-            >
-              <div>  
-                  <input className="w-full h-8 text-lg mb-2 border-blue-200 border-2 rounded-md" placeholder="Role Name" ref={roleInput}/>
-                <Checkbox.Group
-                      style={{
-                        width: '100%',
-                      }}
-                      onChange={onChangePermission}
-                    >
-                      <Row>
-                        {allPermission?.map((temp, index) => {
-                          let color = ""
-                          if(temp.name.includes("DELETE")){
-                            color = "red"
-                          }
-                          else if(temp.name.includes("EDIT")){
-                            color = "blue"
-                          }
-                          else if(temp.name.includes("CREATE")) {
-                            color = "green"
-                          }
-                          else{
-                            color = "yellow"
-                          } 
-                          return  (
-                            <Col span={8} key={index}>
-                              <Tag color={color}>
-                              <Checkbox value={temp.id}>{temp.name}</Checkbox>
-                              </Tag>
-                            </Col>
-                          )
-                        }
-                         
-                        )}
-                      </Row>
-                    </Checkbox.Group>
-              </div> 
-      </Modal>
-      <Drawer title="Project Setting" width={800} placement="right" onClose={onClose} open={open}>
-          <div className='flex justify-between mb-2'>
-          <SearchBar />
-          </div>
-        <h2 className='text-center uppercase'>Team</h2>
-        {!loader && <UserTable data={team} />}
-        <h2 className='text-center uppercase'>Roles</h2>
-        
-        <Button className='float-right' onClick={handleShowRoleModal}>Create Role</Button>
-        {!loader && <RoleTable data={roles} />}
-        <Tooltip title="This Will Delete All the tasks and projet" color='red'>
-          <Button className='w-full flex items-center justify-center' type='primary' danger onClick={showDeleteModal}> <DeleteOutlined /> Delete Project</Button>
-        </Tooltip>
+      <Drawer title="Project Detail" width={620} closable={false} onClose={onClose} open={open}>
+        <Button className='float-right md:hidden' onClick={onClose}>X</Button>
+          <ProjectDetail /> 
+          <ProjectSetting />
       </Drawer>
       </div>
   )

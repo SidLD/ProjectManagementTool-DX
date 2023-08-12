@@ -6,10 +6,9 @@ import { Register } from "../pages/Register/index.jsx"
 import { Project } from "../pages/Project/index.jsx"
 import { PrivateLayout, PublicLayout } from "./module.jsx"
 import { Setting } from "../pages/Setting/index.jsx"
-import { CreateProject } from "../pages/Project/create-project.jsx"
 import { Task } from "../pages/Task/index.jsx"
-import { TaskDetail } from "../pages/Task/task-detail.jsx"
 import { Error } from "../pages/Error/index.jsx"
+import { TaskDetail } from "../pages/Task/TaskDetail/index.jsx"
 const routers = createBrowserRouter(
     createRoutesFromElements(
         <>
@@ -19,7 +18,6 @@ const routers = createBrowserRouter(
             </Route>  
             <Route element={<PrivateLayout/>} errorElement={<Error />}>
                 <Route  index path="/dashboard" element={<Dashboard/>} />
-                <Route  path="/project/create" element={<CreateProject />} />
                 <Route  path="/project/:projectId" element={<Project/>} />
                 <Route  path="/project/:projectId/tasks/:taskId" element={<TaskDetail />} /> 
                 <Route  path="/tasks" element={<Task />} />

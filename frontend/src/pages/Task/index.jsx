@@ -6,30 +6,29 @@ import { getAllTasks, updateTask } from '../../lib/api'
 import { message } from 'antd'
  
 export const Task = () => {
-    const [tasks, setTasks] = useState([])
     const [loader, setLoader] = useState(true)
     const navigate = useNavigate()
     const [messageAPI, contextHolder] = message.useMessage()
+    const [dropStatus, setDropStatus] = useState(null)  //This state helps to render task list when succesfully droped on the other side
     const showMessage = (type, content) => {
       messageAPI.open({
         type,
         content
       })
     }
-    const fetchTasks = async (start, sort, query) => {
+    const renderData = () => {
+
+    }
+    const fetchTasks = async (data) => {
       try {
         const payload = {
-          ...query,
-          start,
-          sort
+          ...data,
         }
-        console.log("P", payload)
         const response = await getAllTasks(payload)
-        setTasks(response.data?.data)
-        console.log(response)
+        return response.data.data
       } catch (error) {
-        console.log(error) 
-        showMessage('warning', 'Something Went Wrong')
+        console.log(error)
+        return []
       }
     }
     const handleStatusChange = async (task, updateTo) => {
@@ -46,6 +45,7 @@ export const Task = () => {
         showMessage('warning', error.response.data.message)
       }
     }
+    
     useEffect(() => {
       fetchTasks(0,{startDate: 'asc'},{})
       setLoader(false)
@@ -54,10 +54,13 @@ export const Task = () => {
     const values = {
         loader,
         contextHolder,
-        tasks,
         navigate,
         handleStatusChange,
-        fetchTasks
+        fetchList: fetchTasks,
+        updateData: renderData,
+        dropStatus, 
+        setDropStatus,
+        showMessage
     }
   return (
       <PageContext.Provider value={values}>

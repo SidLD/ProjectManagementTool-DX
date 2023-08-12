@@ -1,23 +1,22 @@
 import { useContext, useState } from 'react'
 import { PageContext } from '../../lib/context'
-// import { TaskList } from '../../components/TaskList'
 import { TaskList } from '../../components/TaskList'
 import {  Button, Select } from 'antd'
 import Search from 'antd/es/input/Search'
 
 export const TaskView = () => {
-    const {loader, contextHolder, fetchTasks} = useContext(PageContext)
+    const {loader, contextHolder, fetchProject} = useContext(PageContext)
     const [selecedSortIndex, setSelectedSortIndex] = useState(0)
     const [order, setOrder] = useState('asc')
     const handleSelectChange = (e) => {
       setSelectedSortIndex(e)
-      fetchTasks( 0, orderByOptions[selecedSortIndex], {})
+      fetchProject( 0, orderByOptions[selecedSortIndex], {})
     }
     const hanldeSubmitQuery = (e) => {
       if(e.trim() === ""){
-        fetchTasks( 0, orderByOptions[selecedSortIndex], {})
+        fetchProject( 0, orderByOptions[selecedSortIndex], {})
       }else{
-        fetchTasks( 0, orderByOptions[selecedSortIndex], {
+        fetchProject( 0, orderByOptions[selecedSortIndex], {
           OR: [
             {task: {
               contains: e

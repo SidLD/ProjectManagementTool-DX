@@ -20,10 +20,10 @@ model User {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now())
   projects    Project[] //sa Project kay pwede an user magkamayada damu na project
-  user_tasks  Task[] //Task ine kay may specific na task tapos role asya lain siya
-  teamMembers TeamMember[]
+  team_member TeamMember[]
   logs        Logs[]
   comments    Comment[]
+  mentions    Mention[]
 }
 
 model Role {
@@ -31,13 +31,15 @@ model Role {
   name             String
   project          Project      @relation(fields: [projectId], references: [id])
   projectId        String
-  role_teamMembers TeamMember[]
+  role_member      TeamMember[]   //Need Manual disconnect
   role_permissions Permission[]
 }
 
 model Permission {
   id               String @id @default(uuid())
   name             String
+  label            String
+  createdAt       DateTime  @default(now())
   permission_roles Role[]
 }
 
@@ -56,26 +58,27 @@ model Project {
 }
 
 model TeamMember {
-  id        String  @id @default(uuid())
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  projectId String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  userId    String?
-  role      Role?   @relation(fields: [roleId], references: [id], onDelete: SetNull)
-  roleId    String?
+  id         String   @id @default(uuid())
+  project    Project? @relation(fields: [projectId], references: [id], onDelete: SetNull )
+  projectId  String?
+  team_tasks Task[] //Manually Disconnect this
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull )
+  userId     String?
+  role       Role?    @relation(fields: [roleId], references: [id], onDelete: SetNull )
+  roleId     String?
 }
 
 model Task {
-  id          String    @id @default(uuid())
+  id          String       @id @default(uuid())
   task        String?
   description String?
   startDate   DateTime?
   endDate     DateTime?
-  status      String    @default("Not Started") 
-  task_users  User[]
-  project     Project   @relation(fields: [projectId], references: [id])
+  status      String       @default("TO DO")
+  task_member TeamMember[] //Manually Disconnect this
+  project     Project      @relation(fields: [projectId], references: [id])
   projectId   String
-  logs        Logs[]
+  logs        Logs[] 
   comments    Comment[]
 }
 
@@ -83,16 +86,26 @@ model Logs {
   id        String   @id @default(uuid())
   detail    String?
   createdAt DateTime @default(now())
-  task      Task?     @relation(fields: [taskId], references: [id])
+  task      Task?    @relation(fields: [taskId], references: [id])
   taskId    String?
-  user      User?     @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
   userId    String?
+}
+
+model Mention{
+  id              String    @id @default(uuid())
+  comment         Comment?  @relation( fields: [commentId], references: [id])
+  commentId       String?
+  users           User[]
+  isRead          Boolean   @default(false)
+  createdAt       DateTime  @default(now())
 }
 
 model Comment {
   id              String    @id @default(uuid())
   detail          String?
   createdAt       DateTime  @default(now())
+  mentions        Mention[]
   task            Task      @relation(fields: [taskId], references: [id])
   taskId          String
   user            User      @relation(fields: [userId], references: [id])
