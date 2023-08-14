@@ -31,28 +31,31 @@ import { Server } from 'socket.io'
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
 
-import { addUser, removeUser } from './lib/ClientBuckets.js'
+import { removeUser, addUser} from './lib/ClientBuckets.js'
 io.on("connection", (socket) => {
     socket.on("login", (userId) => {
-        console.log(`⚡: A New User Login ${userId}`);
         addUser(userId)
         socket.broadcast.emit('newUser')
     })
     socket.on('logout', (userId) => {
         removeUser(userId)
-        console.log(`⚡: A  User Logout ${userId}`);
         socket.broadcast.emit('removeUser')
     })
     socket.on('createMention', (data) => {
         socket.broadcast.emit('newMention', 'From Server')
     })
     socket.on("createComment", (data) => {
-        console.log(`⚡: Create Comment ${data}`);
-        socket.broadcast.emit('newComment', "From Server")
+        io.sockets.in(data.taskId).emit('newComment',data);
     })
     socket.on("createTask", (data) => {
         console.log(`⚡: A New Comment ${data}`);
         socket.broadcast.emit('newTask', "From Server")
+    })
+    socket.on("joinRoom", (taskId) => {
+        console.log(`⚡: Someone Joined to`, taskId);
+        socket.join(taskId)
+        io.sockets.in(taskId).emit('connectToRoom', "You are in room no. "+taskId);
+
     })
 });
 

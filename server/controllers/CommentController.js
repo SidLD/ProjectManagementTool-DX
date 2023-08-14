@@ -9,7 +9,7 @@ export const createComment = async (req, res) => {
         const taskId = req.params.taskId
         const params = req.body
         const userId = req.user.id
-        const data = await prisma.comment.create({
+        let data = await prisma.comment.create({
             data:{
                 detail: params.detail,
                 user: {
@@ -22,9 +22,22 @@ export const createComment = async (req, res) => {
                         id: taskId
                     }
                 }
+            },
+            select: {
+                taskId: true,
+                createdAt: true,
+                detail: true,
+                id: true,
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        id: true,
+                    }
+                }
             }
         })
-        console.log(data)
+        data.user.isActive = true
         if(params.mentions){
             await Promise.all(
                 params.mentions.map(async (userEmail) => {
