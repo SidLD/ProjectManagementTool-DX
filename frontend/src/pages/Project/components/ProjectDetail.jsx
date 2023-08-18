@@ -6,7 +6,7 @@ import { Progress,Tooltip } from 'antd'
 export const ProjectDetail = () => {
     const {loader ,project} = useContext(PageContext)
     return ( 
-        !loader && <div className='font-poppins bg-white rounded-2xl'>
+        !loader && <div className=' font-poppins rounded-2xl'>
             <h2>Title: {project.name}</h2>
             <p>Description: {project.description}</p>
             <p>Manager: {`${project?.manager?.firstName} ${project?.manager?.lastName}`}</p>
@@ -18,46 +18,6 @@ export const ProjectDetail = () => {
                 <p className='text-left '>Progress</p>
                 <Progress className='w-3/4 ml-2 my-auto' percent={project.progress}/>
             </Tooltip>
-            {/* 
-            {!loader &&  <Table columns={[
-                {
-                    title: 'Role',
-                    dataIndex: 'name',
-                    key: 'name',
-                },
-                {
-                    title: 'Permissions',
-                    dataIndex: 'permissions',
-                    key: 'name',
-                },
-            ]}  
-            dataSource={roles.map(role => ({
-                key: role.id,
-                name: role.name,
-                permissions: (
-                  <div className='grid-col-2'>
-                    {[role?.role_permissions.map((permission) => {
-                      let color = ""
-                      if(permission.name.includes("EDIT")){
-                        color = "red"
-                      }
-                      else {
-                        color = "green"
-                      }
-                      return (
-                        <Tooltip key={permission.id} color={color} title={permission.label}>
-                            <Tag color={color} key={permission.id}>{permission.name}</Tag>
-                        </Tooltip>
-                      )
-                    }
-                    )]}
-                  </div>
-                ),
-    
-            }))}
-                pagination={false}
-            />}
-            {/* {!loader &&  <RoleTable />} */}
         </div>
   )
 }

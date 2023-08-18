@@ -47,3 +47,30 @@ export const getMention = async (req, res) => {
         res.status(400).send({ok:false, message: error.message})
     }
 }
+
+export const updateMention = async (req, res) => {
+    try {
+        const userId = req.user.id
+    } catch (error) {
+        res.status(400).send({ok:false, message: error.message})
+    }
+}
+
+export const updateAllMention = async (req, res) => {
+    try {
+        const userId = req.user.id
+
+        const data = await prisma.mention.updateMany({
+            where: {users: {
+                some: {id: userId}
+            }},
+            data: {
+                isRead: true
+            }
+        })
+
+        res.status(200).send({ok: true, data, message: "Success"})
+    } catch (error) {
+        res.status(400).send({ok:false, message: error.message})
+    }
+}

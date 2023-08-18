@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import { getPermission } from '../repository/RoleRepository.js';
 
 //functions
 export const verifyToken = async (req,res, next) => {
@@ -22,7 +21,6 @@ export const verifyToken = async (req,res, next) => {
             res.status(406).json({message:"Token Not Acceptable"})
         }
     } catch (error) {
-        console.log(error)
         res.status(406).json({message:"Token Not Acceptable"})
     }
 }

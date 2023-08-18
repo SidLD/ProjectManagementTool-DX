@@ -6,7 +6,7 @@ import { deleteTeamMember, updateTeamMember } from '../../../lib/api';
 const { Column } = Table;
 
 export const UserTable = () => {
-    const {roles, team, projectId, fetchTeam, fetchList, showMessage} = useContext(PageContext)
+    const {roles, team, projectId, fetchTeam, fetchList, showMessage, userPermission} = useContext(PageContext)
     const [showModal, setShowModal] = useState(false)
     const [selectedData, setSelectedData] = useState(null)
     const [selectedRoleForEdit, setSelectedRoleForEdit] = useState()
@@ -116,6 +116,7 @@ export const UserTable = () => {
 
         }
     ))
+
   return (
     <>
       <Table className='rounded-lg shadow-md' dataSource={items} pagination={false}>
@@ -125,7 +126,9 @@ export const UserTable = () => {
         dataIndex="role"
         key="role"
       />
-      <Column title="Action" dataIndex="action" key="action" />
+
+      {userPermission.includes('EDIT-MEMBER') && <Column title="Action" dataIndex="action" key="action" />}
+    
     </Table>
     <div className='float-right my-5'>
         <Button onClick={onPrevPage} >{`<`}</Button>

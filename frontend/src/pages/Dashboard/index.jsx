@@ -38,6 +38,7 @@ export const Dashboard = () => {
         })
         await fetchProjects()
     };
+    
     const fetchProjects = async () => setTimeout(async () => {
         try {  
             //Fetch User Project and other project whome the user is associated to
@@ -55,12 +56,14 @@ export const Dashboard = () => {
             showMessage('warning', "Server Error")
         }
     }, 1000)
+
     const showMessage = (type, content) => {
         messageAPI.open({
           type,
           content,
         })
-      }
+    }
+
     useLayoutEffect(() => {
         //This will allow the page to load faster when first called
         const initProject = async() => {

@@ -14,6 +14,7 @@ import io from "socket.io-client";
 //Need to add this before the component decleration
 const socket = io(`${import.meta.env.VITE_API_URL}`,{
          transports: ["websocket"] });
+         
 const useStore = create((set) => ({
     completedTask: 0,
     setCompletedTask: (num) => set(() => ({ completedTask: num})),
@@ -36,6 +37,7 @@ export const CustomeSider = () => {
     const onClick = (e) => {
         navigate(e.key)
     }
+
     const [messageAPI, contextHolder] = message.useMessage()
     const  showMessage = (type, content) => {
       messageAPI.open({
@@ -43,6 +45,7 @@ export const CustomeSider = () => {
         content
       })
     }
+
     const handleSubmit = async (e) => {  
         try {
             const payload = {
@@ -63,6 +66,7 @@ export const CustomeSider = () => {
         }
       
     }
+
     const getTaskNum = async () => {
         try {
             const complete = await getTaskCount({status: 'COMPLETED'})

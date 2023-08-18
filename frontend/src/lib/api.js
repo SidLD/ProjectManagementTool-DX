@@ -350,6 +350,7 @@ export const createTeamMember = (projectId, data) => {
       });
   });
 };
+
 export const updateTeamMember = (projectId,memberId,data) => {
   return new Promise((resolve, reject) => {
     axios
@@ -362,6 +363,7 @@ export const updateTeamMember = (projectId,memberId,data) => {
       });
   });
 };
+
 export const deleteTeamMember = (projectId,data) => {
   return new Promise((resolve, reject) => {
     axios
@@ -414,6 +416,7 @@ export const createComment = (taskId, data) => {
       });
   });
 };
+
 export const replyComment = (taskId, data) => {
   return new Promise((resolve, reject) => {
     axios
@@ -426,6 +429,7 @@ export const replyComment = (taskId, data) => {
       });
   });
 };
+
 export const getComment = (taskId, data) => {
   return new Promise((resolve, reject) => {
     axios
@@ -442,6 +446,7 @@ export const getComment = (taskId, data) => {
       });
   });
 };
+
 export const getReplyComment = (commentId, data) => {
   return new Promise((resolve, reject) => {
     axios
@@ -477,4 +482,31 @@ export const getMention = (data) => {
       });
   });
 };
+
+export const updateMention = (data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/mention`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const updateAllMention = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/mentions`, {}, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
 //END of Mention API

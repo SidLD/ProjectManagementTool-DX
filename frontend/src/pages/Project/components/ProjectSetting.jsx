@@ -10,12 +10,13 @@ import {
   } from '@ant-design/icons';
 import { createRole, deleteProject } from '../../../lib/api'
 export const ProjectSetting = () => {
-    const {loader, project, showMessage, navigate, allPermission, fetchRoles} = useContext(PageContext)
+    const {loader, project, showMessage, navigate, allPermission, fetchRoles, userPermission} = useContext(PageContext)
     const [showModal, setShowModal] = useState(false)
 
     const [selectedPermission, setSelectedPermission] = useState([])
     const [showRoleModal, setShowRoleModal] = useState(false)
     const roleInput = useRef()
+
     const handleDeleteProject = async (e) => {  
         try {
           const name = project.name
@@ -36,6 +37,7 @@ export const ProjectSetting = () => {
           console.log(error.response.data)
         }
     }
+    
     const handleOkRoleModal = async () => {
         if(roleInput.current.value.trim() === "" || selectedPermission.length < 1){
           showMessage('warning', 'Please Role Name & Check Permission')
@@ -65,27 +67,38 @@ export const ProjectSetting = () => {
           }
         }
     };
+
     const handleShowRoleModal  = () => {
         setShowRoleModal(true)
     }
+
     const handleCancelRoleModal = () => {
         setShowRoleModal(false)
     }
+
     const onChangePermission = (e) => {
         setSelectedPermission(e)
-    } 
+    }
+
     return (
     <>
-        <div className='my-5'>
+        {userPermission.includes('EDIT-MEMBER') && <div className='my-5'>
           <SearchBar />
-        </div>
+        </div>}
+
         {!loader && <UserTable/>}
-        <Button className='mt-16 relative float-right  bg-yellow-400 font-bold my-5' onClick={handleShowRoleModal}>Create Role</Button>
+
+        {userPermission.includes('EDIT-ROLE') &&  <Button 
+          className='mt-16 relative float-right  bg-yellow-400 font-bold my-5' 
+          onClick={handleShowRoleModal}>Create Role</Button>
+}
         {!loader && <RoleTable />}
-        <Tooltip title="This Will Delete All the tasks and projet" color='red'>
+
+        {userPermission.includes('DELETE-PROJECT') && <Tooltip title="This Will Delete All the tasks and projet" color='red'>
           <Button className='w-full flex items-center justify-center' type='primary' danger onClick={() => setShowModal(true)}>
             <DeleteOutlined /> Delete Project</Button>
-        </Tooltip>
+        </Tooltip>}
+        
         <Modal title="Delete Project" open={showModal} onCancel={() => setShowModal(false)}
             footer={null}
         >

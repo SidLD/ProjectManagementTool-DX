@@ -87,8 +87,6 @@ export const CommentBox = () => {
             setComments(comments => [...comments, item])
         } 
         socket.on("newComment", handleNewComment)
-
-
         
         socket.on('newUser', async () => {
             await fetchComments()

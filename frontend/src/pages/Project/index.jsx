@@ -1,4 +1,5 @@
-import { useLayoutEffect, useState } from 'react'
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState } from 'react'
 import { PageContext } from '../../lib/context'
 import { ProjectView } from './view'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -11,39 +12,78 @@ import {
   getProjects, 
   getRoles, 
   getTasks, 
-  getTeamMembers } from '../../lib/api'
+  getTeamMembers, 
+  updateTask} from '../../lib/api'
   import io from "socket.io-client";
+
   //Need to add this before the component decleration
   const socket = io(`${import.meta.env.VITE_API_URL}`,{
            transports: ["websocket"] });
+
 export const Project = () => {
     const {projectId} = useParams()
-    const [dropStatus, setDropStatus] = useState(null)  //This state helps to render task list when succesfully droped on the other side
     const [messageAPI, contextHolder] = message.useMessage()
     const [loader, setLoader] = useState(true)
     const [project, setProject] = useState({})
-    const [permission, setPermission] = useState([])
+    const [taskList, setTaskList] = useState([
+      {
+        title: 'TO DO',
+        tasks: []
+      },
+      {
+        title: 'IN PROGRESS',
+        tasks: []
+      },
+      {
+        title: 'COMPLETED',
+        tasks: []
+      }
+    ])
+    const [userPermission, setPermission] = useState([])
     const navigate = useNavigate()
     const [roles, setRoles] = useState([])
     const [team, setTeam] = useState([])
     const [allPermission, setAllPermission] = useState([])
     const [query, setQuery] = useState("")
+
     const handleQueryChange = (e) => {
       setQuery(e)
     } 
-    const fetchTasks = async (data) => {
+
+    const fetchTasks = async (query) => {
       try {
-        const payload = {
-          ...data,
-          projectId
-        }
-        const response = await getTasks(projectId, payload)
-        return response.data.data
+        const result = await Promise.all(taskList.map(async (list) => {
+          const payload = {
+            OR: [
+              {task: query},
+              {task_member: {
+                some: {
+                  role: { name: query }
+                }
+              }},
+              {project: {name: query}}
+            ],
+            status: list.title
+          }
+          try {
+            const response = await getTasks(projectId, payload)
+            return {
+              title: list.title,
+              tasks: response.data.data
+            }
+          } catch (error) {
+            return {
+              ...list,
+            }  
+          }
+        }))
+        
+        setTaskList(result)
       } catch (error) {
         console.log(error)
-        return []
       }
     }
+
     const fetchTeam = async (data) => {
       try {
         const payload = {
@@ -56,6 +96,7 @@ export const Project = () => {
         console.log(error)
       }
     }
+
     const submitTask = async (e) => {
       try {
         const payload = {
@@ -67,7 +108,6 @@ export const Project = () => {
         }
         const response = await createTasks(projectId, payload)
         if(response.data.ok){
-          setDropStatus("Render")
           showMessage('success', 'Success')
           return true
         }
@@ -77,6 +117,7 @@ export const Project = () => {
         return false
       }
     }
+
     const fetchRoles = async (data) => {
       try {
         const payload = {
@@ -89,6 +130,7 @@ export const Project = () => {
         console.log(error)
       }
     }
+    
     const fetchProject = async () => {
       try {
         const payload = {
@@ -106,6 +148,7 @@ export const Project = () => {
         }
       }
     }
+    
     const getUserPermission = async() => {
       try {
           const payload = {
@@ -118,17 +161,20 @@ export const Project = () => {
         showMessage('warning', 'ERROR DIDI')
       }
     }
+
     //This Limit the task start time, since task should not have start time before the project start time
     const disabledDate = (current) => {
       let customDate = new Date(project.startDate);
       return current && current < moment(customDate, "YYYY-MM-DD");
     }
+    
     const showMessage = (type, content) => {
       messageAPI.open({
         type,
         content,
       })
     }
+
     //Edit Role & Member Role Functions
     const fetchAllPermission = async () => {
       try {
@@ -138,8 +184,55 @@ export const Project = () => {
         setAllPermission([])
       }
     }
-    useLayoutEffect(() => {
-      fetchProject()
+  
+    const handleStatusChange = async (projectId ,taskId, status) => {
+      try {
+        const payload = {
+          status: status
+        }
+        const response = await updateTask(projectId, taskId, payload)
+        if(response.data.ok){
+          showMessage('success', `Set Status to ${status}`)
+          return true
+        }
+      } catch (error) {
+        showMessage('warning', error.response.data.message)
+        return false
+      }
+    }
+
+  //if destination is null === DId not drop in any droppable Column
+  //if Destination index == source index === drop on the same column
+  //Lastly get all the data 
+    const onDragEnd = async (e) => {
+      const {destination, source, draggableId} = e
+      if (!destination) return;
+      if(destination.droppableId === source.droppableId) return;
+      
+      let sourceColumn = taskList.find(item => item.title === source.droppableId)
+      const selectedTask = sourceColumn.tasks.find(temp => temp.id === draggableId)
+      let destinationColumn = taskList.find(temp => temp.title === destination.droppableId)
+      
+      destinationColumn.tasks.push(selectedTask)
+      sourceColumn.tasks.splice(selectedTask, 1)
+      
+      if(handleStatusChange(selectedTask.project.id ,selectedTask.id, destinationColumn.title)){
+        setTaskList(taskList => taskList.map(column => {
+          if(column.title === sourceColumn.title){
+            return sourceColumn
+          }
+          else if(column.title === destinationColumn.title){
+            return destinationColumn
+          }
+          else{
+            return column
+          }
+        }))
+      }
+  }
+
+    useEffect(() => {
+      fetchProject("")
       getUserPermission()
       fetchRoles()
       fetchAllPermission()
@@ -152,11 +245,12 @@ export const Project = () => {
       socket.on('removeUser', async () => {
         await fetchTeam()
       })
-        // console.log("Render Outside")
-    },[socket])
+
+    },[])
 
     //All data that requires the other component to render is passed here
     const values = {
+      onDragEnd,
       fetchTeam,
       fetchList: fetchTasks,
       fetchRoles,
@@ -165,13 +259,12 @@ export const Project = () => {
       navigate,
       disabledDate,
       submitTask, 
-      setDropStatus,
       handleQueryChange,
+      taskList,
       query,
-      dropStatus,
       contextHolder,
       loader,
-      permission,
+      userPermission,
       roles,
       team,
       projectId,

@@ -30,8 +30,8 @@ export const DashboardView = () => {
                             marginRight: '5px',
                             }
                         }/>
-                    <Button className='dark:text-white shadow-md border-none text-start font-poppins text-blue-500 ' 
-                        onClick={toggleOrder}>Sort {order ? 'Asc' : 'Desc'}</Button>
+                    <Button className='dark:border-white dark:border-1 dark:text-white shadow-md  text-start font-poppins text-blue-500 ' 
+                        onClick={toggleOrder}>{order ? 'Asc' : 'Desc'}</Button>
                     <Tooltip title="Show Tasks">
                         <Button className='md:hidden dark:text-white p-0 w-8 h-8 flex justify-center m-2 items-center' 
                             onClick={() => setShowTask(!showTask)}>

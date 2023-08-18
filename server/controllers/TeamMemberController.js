@@ -88,6 +88,7 @@ export const addTeamMember = async (req, res) => {
         res.status(400).send({ok:false,message: "Invalid Data"})
     }   
 }
+
 export const getTeamMembers = async (req, res) => {
     try {
         let query = req.query
@@ -98,7 +99,7 @@ export const getTeamMembers = async (req, res) => {
         delete query.limit
         delete query.order
         const permissions = await getPermission(req.user.id, query.projectId)
-        if(permissions.includes("VIEW-MEMBER") || permissions.includes("DELETE-MEMBER")){
+        if(permissions.includes("VIEW-PROJECT")){
             const data = await prisma.teamMember.findMany({
                 where: query,
                 select:{

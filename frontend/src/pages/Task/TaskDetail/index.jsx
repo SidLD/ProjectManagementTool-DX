@@ -21,13 +21,14 @@ export const TaskDetail = () => {
     const [logs, setLogs] = useState([])
     const [loader, setLoader] = useState(true)
     const [messageAPI, contextHolder] = message.useMessage()
-    const [permission, setPermission] = useState([])
+    const [userPermission, setPermission] = useState([])
     const navigate = useNavigate()
 
     const disabledDate = (current) => {
       let customDate = new Date(project.startDate);
       return current && current < moment(customDate, "YYYY-MM-DD");
     }
+
     // const handleSaveEdit = () => {
     //   try {
     //     let startDate = task.startDate
@@ -57,6 +58,7 @@ export const TaskDetail = () => {
     // const handleCalendarChange = (e) => {
     //   setNewDate(e)
     // }
+
     const showMessage = (type, content) => {
         messageAPI.open({
           type,
@@ -76,6 +78,7 @@ export const TaskDetail = () => {
           navigate(`/project/${projectId}`)
         }
       }
+
       const fetchLogs = async () => {
         try {
           const payload = {
@@ -95,8 +98,9 @@ export const TaskDetail = () => {
               navigate(`/project/${projectId}`)
             }, 1000)
           }
-        }
+        } 
       }
+
       const handleStatusChange = async () => {
         try {
           let nextStatus = ""
@@ -121,6 +125,7 @@ export const TaskDetail = () => {
           showMessage('warning', error.response.data.message)
         }
       }
+
       const handleDeleteTask = async () => {
         try {
           const response = await deleteTask(projectId, {id:task.id})
@@ -134,6 +139,7 @@ export const TaskDetail = () => {
           console.log(error)
         }
       }
+      
       const fetchProject = async () => {
         try {
           const payload = {
@@ -151,6 +157,7 @@ export const TaskDetail = () => {
         }
         }
       }
+
       const getUserPermission = async() => {
         try {
             const payload = {
@@ -163,6 +170,7 @@ export const TaskDetail = () => {
           showMessage('warning', 'ERROR DIDI')
         }
       }
+
       const handleAddUser = async (memberId) => {
         if(!memberId){return}
         try {
@@ -184,6 +192,7 @@ export const TaskDetail = () => {
           return false
         }
       }
+
       const handleRemoveUser = async (memberId) => {
         if(!memberId){return}
         try {
@@ -206,6 +215,7 @@ export const TaskDetail = () => {
           return false
         }
       }
+
       useEffect(() => {
         fetchTask()
         fetchLogs()
@@ -223,7 +233,7 @@ export const TaskDetail = () => {
         handleAddUser,
         handleRemoveUser,
         logs,
-        permission,
+        userPermission,
         loader,
         contextHolder,
         task,

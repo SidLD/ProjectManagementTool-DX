@@ -6,29 +6,34 @@ import { Button,DatePicker, Drawer, Form, Input, Modal, Select, Table } from 'an
 import { TaskList } from '../../components/TaskList'
 import { ProjectDetail } from './components/ProjectDetail'
 import { ProjectSetting } from './components/ProjectSetting'
+import { DragDropContext } from 'react-beautiful-dnd'
 
 export const ProjectView = () => {
   const {contextHolder, loader, submitTask,
-          disabledDate, team, handleQueryChange
+          disabledDate, team, handleQueryChange, onDragEnd, taskList, userPermission
           } = useContext(PageContext)
   const [open, setOpen] = useState(false);
   const [showModal, setShowModal] = useState(false)
+  const [selectedMemberForTask, setSelectectedMemberForTask] = useState([])
+  const { RangePicker } = DatePicker;
+
   const showDrawer = () => {
     setOpen(true);
   };
+
   const onClose = () => {
     setOpen(false);
   };
-  const [selectedMemberForTask, setSelectectedMemberForTask] = useState([])
-  const { RangePicker } = DatePicker;
   const removeMember = (id) => {
     setSelectectedMemberForTask(selectedMemberForTask.map(member => member.id !== id))
   }
+
   const handleTaskFormOnSubmit = (e) => {
     if(submitTask({...e, selectedMemberForTask})) {
       setShowModal(false)
     }
   }
+  
   //Didi guinKuha ko an team sa index tapos guinBiling ko an data based sa member ID na guinPasa tikang sa Select Search
   const handleMemberForTask = (e) => {
     const selectedMember = team?.filter(member => member.id === e)
@@ -40,6 +45,7 @@ export const ProjectView = () => {
       action: (<Button onClick={() => removeMember(selectedMember[0]?.id)}>Remove</Button>)
     }])
   }
+
   const selectedUserTaskTableColumn = [
     {
       title: 'Name',
@@ -57,29 +63,30 @@ export const ProjectView = () => {
       key: 'action',
     },
   ];
+  
   return (
     !loader && 
       <div >{contextHolder}
         <div className='flex-row xl:w-full xl:h-full'>
-          <div className='bottom-200 left-2  m-2 flex justify-between items-center'>
-              <Search onSearch={handleQueryChange} />
-              <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-blue-500'  onClick={() => setShowModal(true)}>Create Task</Button>
-              <Button className='w-8/12 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Detail</Button>
+          <div className='bottom-200 left-2  m-2 flex justify-between gap-x-2 items-center'>
+              <Search className='w-1/4' onSearch={handleQueryChange} />
+              {userPermission.includes('VIEW-PROJECT') && <>
+              {userPermission.includes('EDIT-PROJECT') &&  <Button 
+                className='w-8/12 border-2 text-slate-50 hover:text-black bg-blue-500'  
+                onClick={() => setShowModal(true)}>Create Task</Button>}
+
+              <Button className='w-1/4 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Detail</Button>
+              </>}
           </div>
           <div className='w-full'>
             {!loader && <div className='m-2 md:grid-cols-3 md:mt-2 grid grid-cols-1 gap-3 rounded-lg font-poppins h-fit' >
-              <div className='bg-slate-300 p-2 rounded'>
-                <h3 className='text-center font-bold'>To Do Tasks</h3>
-                <TaskList title={"TO DO"}/>
-              </div>
-              <div className='bg-slate-300 p-2 rounded'>
-                <h3 className='text-center font-bold'>In Progress Tasks</h3>
-                <TaskList title={"IN PROGRESS"}/>
-              </div>
-              <div className='bg-slate-300 p-2 rounded'>
-                <h3 className='text-center font-bold'>Complete Tasks</h3>
-                <TaskList title={"COMPLETED"}/>
-              </div>
+              <DragDropContext
+                onDragEnd={onDragEnd} >
+                  { taskList.map(({title, tasks}) => {
+                      return <TaskList key={title} title={title} tasks={tasks}/>
+                    })
+                  }
+              </DragDropContext>
           </div>}
         </div>
       </div>
@@ -128,10 +135,9 @@ export const ProjectView = () => {
                 columns={selectedUserTaskTableColumn}/>}
           </div>
           <Button className='flex justify-center' htmlType='submit'>Submit</Button>
-            
           </Form>
       </Modal>
-      <Drawer title="Project Detail" width={620} closable={false} onClose={onClose} open={open}>
+      <Drawer className='dark:bg-slate-900 dark:text-slate-200'  title="Project Detail" width={620} closable={false} onClose={onClose} open={open}>
         <Button className='float-right md:hidden' onClick={onClose}>X</Button>
           <ProjectDetail /> 
           <ProjectSetting />

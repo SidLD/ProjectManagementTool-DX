@@ -6,23 +6,26 @@ import { deleteRole, updateRole } from '../../../lib/api';
 const { Column } = Table;
 
 export const RoleTable = () => {
-    const {projectId, roles, allPermission, fetchRoles, fetchTeam,showMessage} = useContext(PageContext)
+    const {projectId, roles, allPermission, fetchRoles, fetchTeam, showMessage, userPermission} = useContext(PageContext)
     const [selectedRole, setSelectedRole] = useState({})
     const [showModal, setShowModal] = useState(false)
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage] = useState(2) 
+
     const onChangePermission = (e) => {
       setSelectedRole({
         ...selectedRole,
         selectedPermission:e 
       })
     }
+
     const handleInputChange = (e) => {
       setSelectedRole({
         ...selectedRole,
         name: e.target.value
       })
-    } 
+    }
+    
     const handleSelectRole = (name ,id, currentPermission, type) => {
       setSelectedRole({
         name: name,
@@ -32,6 +35,7 @@ export const RoleTable = () => {
       })
       setShowModal(true)
     }
+
     const saveRemoveRole = async () => {
       try {
             const payload = {
@@ -48,6 +52,7 @@ export const RoleTable = () => {
             showMessage('warning', error.response.data.message)
           }
     }
+
     const saveEditRole = async () => {
       try {
             const payload = {
@@ -70,6 +75,7 @@ export const RoleTable = () => {
             showMessage('warning', error.response.data.message)
           }
     }
+
     const handleOk = () => {
       if(selectedRole.type === "remove"){
         saveRemoveRole()
@@ -78,10 +84,12 @@ export const RoleTable = () => {
       }
       setShowModal(false)
     }
+
     const handleCancel = () => {
       setSelectedRole({})
       setShowModal(false)
     }
+    
     const items = roles.map((data) => (
         {
             key: data.id,
@@ -115,9 +123,9 @@ export const RoleTable = () => {
                 </Button>
               </Tooltip>
             </div>
-
         }
     ))
+
     const onNextPage = async () => {
       await fetchRoles({
         start: postsPerPage * currentPage, 
@@ -128,6 +136,7 @@ export const RoleTable = () => {
       })
       setCurrentPage(currentPage + 1)
     }
+
     const onPrevPage = async () => {
       if((postsPerPage * (currentPage - 2) > -1)){
         await fetchRoles({
@@ -150,7 +159,9 @@ export const RoleTable = () => {
         dataIndex="permissions"
         key="permissions"
       />
-      <Column title="Action" dataIndex="action" key="action" />
+
+      {userPermission.includes('EDIT-ROLE') && <Column title="Action" dataIndex="action" key="action" />}
+
     </Table>
       <div className='float-right my-5'>
         <Button onClick={onPrevPage} >{`<`}</Button>

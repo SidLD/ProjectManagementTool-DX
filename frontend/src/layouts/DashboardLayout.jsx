@@ -3,8 +3,6 @@ import {Outlet} from 'react-router-dom'
 import {Content, Header} from 'antd/es/layout/layout'
 import { useEffect, useState} from 'react';
 import {DarkModeSwitch} from 'react-toggle-dark-mode';
-import {DndProvider} from 'react-dnd'
-import {HTML5Backend} from 'react-dnd-html5-backend'
 import Sider from 'antd/es/layout/Sider';
 import { CustomeSider } from '../components/CustomeSider';
 import { getProjects } from '../lib/api';
@@ -12,16 +10,21 @@ import { AppContext } from '../lib/context';
 import { auth } from '../lib/services';
 import {Notification} from '../components/Notification'
 import OutsideClickHandler from 'react-outside-click-handler';
+
 export const DashboardLayout = () => {
     const theme = localStorage.getItem('theme')
     const user = auth.getUserInfo()
+    const [projects, setProjects] = useState([])
+    const [showMenu, setShowMenu] = useState(false)
     const [collapsed, setCollapsed] = useState(false);
     const [isDarkMode, setDarkMode] = useState(theme === "dark" ? true : false)
+    
     if (theme === "dark") {
         document.documentElement.classList.add('dark')
     } else {
         document.documentElement.classList.remove('dark')
     }
+
     const toggleDarkMode = () => {
         if (isDarkMode) {
             document.documentElement.classList.remove('dark')
@@ -34,11 +37,10 @@ export const DashboardLayout = () => {
         }
     };
 
-    const [showMenu, setShowMenu] = useState(false)
     const handleShowMenu = () => {
         setShowMenu(!showMenu)
     }
-    const [projects, setProjects] = useState([])
+
     const fetchProject = async (e) => {
         try {
             const payload = {
@@ -57,9 +59,11 @@ export const DashboardLayout = () => {
         } catch (error) {
           console.log(error)
         }
-      }
+    }
+
     useEffect(() => {
         fetchProject()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
     const values = {
         projects,
@@ -87,16 +91,14 @@ export const DashboardLayout = () => {
                     <Header className=' flex justify-between items-center text-black bg-white dark:bg-slate-800'>
                     <Button className='md:hidden font-poppins text-start text-blue-500 border-none' onClick={handleShowMenu}>Menu</Button>
                     <Notification />
-                    <h1 className='uppercase text-sm mr-2 bold sm:text-xl '>Project Management Tool</h1>
+                    <h1 className='hidden md:block dark:text-white uppercase text-sm mr-2 bold sm:text-xl '>Project Management Tool</h1>
                         <DarkModeSwitch className='mr-5'
                             checked={isDarkMode}
                             onChange={toggleDarkMode}
                             size={30}/>
                     </Header>
                         <Content className='overflow-x-hidden m-0 p-0 bg-slate-200 dark:bg-slate-950 '>
-                            <DndProvider backend={HTML5Backend}>
-                                <Outlet/>
-                            </DndProvider>
+                            <Outlet/>
                         </Content>
                 </Layout>
             </Layout>

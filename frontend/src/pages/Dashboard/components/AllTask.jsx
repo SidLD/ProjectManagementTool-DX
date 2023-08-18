@@ -12,17 +12,19 @@ export const AllTask = () => {
   // eslint-disable-next-line no-unused-vars
 
 
-  const fetchTasks = async (data) => {
+  const fetchTasks = async () => {
+    
     try {
       const payload = {
-          ...data,
           status:"IN PROGRESS"
       }
-      const response = await getAllTasks( payload)
+      
+      const response = await getAllTasks(payload)
+      console.log(response.data.data)
       setTasks(response.data.data)
     } catch (error) {
       console.log(error)
-      return []
+      setTasks([])
     }
   }
  

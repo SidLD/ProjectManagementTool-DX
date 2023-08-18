@@ -13,8 +13,7 @@ export const ALlTaskItem = ({item}) => {
     const dateLeft = new Date(dueDate - new Date())
     const colors = TaskStatusColor(item)
     return (
-            <div className={` bg-white rounded-t-lg h-36 my-2 p-2 shadow-sm hover:scale-y-110 delay-100 
-                    ${colors.border}`}>
+            <div className={` bg-white rounded-lg h-36 my-2 p-2 shadow-sm hover:scale-y-110 delay-100`}>
                 <div className="h-1/5 flex justify-between items-center">
                     <p className={`font-poppins text-lg font-bold`}>
                         { item.task}

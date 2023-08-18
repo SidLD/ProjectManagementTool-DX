@@ -13,7 +13,7 @@ export const getRoles = async (req, res) => {
         delete params.limit
         delete params.start
         const permissions = await getPermission(req.user.id, projectId)
-        if(permissions.includes("VIEW-ROLE") || permissions.includes("EDIT-ROLE")){
+        if(permissions.includes("VIEW-PROJECT")){
             const data = await prisma.role.findMany({
                 where: {
                     projectId: projectId
@@ -44,6 +44,7 @@ export const getRoles = async (req, res) => {
         res.status(400).send({ok:false, message: error.message})
     }
 }
+
 export const getUserRole = async (req, res) => {
     try {
         const projectId = req.query.projectId
@@ -89,6 +90,7 @@ export const getUserRole = async (req, res) => {
         res.status(400).send({ok:false, message: error.message})
     }
 }
+
 export const createRole = async (req, res) => {
     try {
         const projectId = req.params.projectId

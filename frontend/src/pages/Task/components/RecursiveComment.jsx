@@ -2,7 +2,7 @@
 
 import {  useEffect, useState } from "react"
 import { formatDate } from "../../../lib/helper"
-import { Avatar, Badge } from "antd"
+import { Avatar } from "antd"
 import { getReplyComment } from "../../../lib/api"
 
 export const RecursiveComment = ({data, handleSelectComment, reply = false}) => {
@@ -21,6 +21,7 @@ export const RecursiveComment = ({data, handleSelectComment, reply = false}) => 
     }
     fetchChilrenComment()
   },[])
+
   return (
     <>
       <div onMouseOver={() => setShowDetail(true)} onMouseOut={() => setShowDetail(false)} 
@@ -33,10 +34,7 @@ export const RecursiveComment = ({data, handleSelectComment, reply = false}) => 
               </div>
           </div>}
           <p className="mr-1 break-words rounded-lg p-2 bg-slate-100">{data.detail}</p>
-          <Badge offset={[-3,5]} dot size="small" status={data?.user.isActive ? 'success' : 'default'}>
-            <Avatar  > {data.user.firstName} {data.user.lastName}</Avatar>
-          </Badge>
-            
+          <Avatar> {data.user.firstName} {data.user.lastName}</Avatar>
         </div>
         {showDetail &&  <div 
             className="text-xs text-slate-50 ml-10 flex justify-evenly items-center">
@@ -52,7 +50,6 @@ export const RecursiveComment = ({data, handleSelectComment, reply = false}) => 
                 reply={true}
               />
         ))} 
-     
       </div>
   </>
   )

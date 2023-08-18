@@ -20,18 +20,21 @@ export const TaskDetailView = () => {
         navigate, 
         projectId, 
         handleStatusChange,
-        handleAddUser
+        handleAddUser,
+        userPermission
     } = useContext(PageContext)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [showAddUserModal, setShowAddUserModal] = useState(false)
     const [searchData, setSearchData] = useState([])
     const [selectedMember, setSelectedMember] = useState()
+
     const addUser = async () => {
      const isSuccess = await handleAddUser(selectedMember)
      if(isSuccess) {
       setShowAddUserModal(!showAddUserModal);
      }
     }
+    
     const onSearch = async (query) => {
       try {
           const payload = {
@@ -42,11 +45,6 @@ export const TaskDetailView = () => {
                 {email: query}
               ]
             },
-            // team_tasks: {
-            //   none: {
-            //     id:task.id
-            //   }
-            // },
             projectId: task.project.id,
             limit: 5
           }
@@ -60,23 +58,27 @@ export const TaskDetailView = () => {
           // console.log(error)
       }
     }
+
     const handleSelect = (value) => {
       setSelectedMember(value)
       setShowAddUserModal(true)
     };
+    
     const handleCancelAddUser = () => {
       setSelectedMember(null)
       setShowAddUserModal(false)
     } 
+    
     const handleCancelDeleteTask = () => {
       setSelectedMember(null)
       setShowDeleteModal(false)
     }
+    
     return (
         <>
         {contextHolder}
-        {!loader && <div className="p-2 lg:flex h-screen">
-          <div className="lg:w-2/3 lg:mr-2 bg-white rounded-lg shadow-lg p-2">
+        {!loader && <div className="p-2 lg:flex h-full">
+          <div className="dark:bg-slate-900 dark:text-slate-200 lg:w-2/3 lg:mr-2 bg-white rounded-lg shadow-lg p-2">
               <div className="float-right flex w-full justify-between mb-5">
               <Tooltip color="blue" title="Project Detail">
                 <Button className="bg-blue-500 text-white" onClick={() => navigate(`/project/${projectId}`)}>
@@ -100,12 +102,14 @@ export const TaskDetailView = () => {
             </div>
             <div>
               
-          <Select onChange={onSearch} 
+            {userPermission.includes('EDIT-PROJECT') && 
+            <Select 
+            className='my-2 text-black'
+            onChange={onSearch} 
             showSearch
-            style={{ width: 400 }}
             onSearch={onSearch}
             onSelect={handleSelect}
-            placeholder="Input Email or Name of Team Member"
+            placeholder="Input Email or Name of Team Member to assign to this Task"
             optionFilterProp="children"
             filterOption={(input, option) =>
                 (option?.label ?? '').toLowerCase().includes(input.toLowerCase() || "")
@@ -116,9 +120,11 @@ export const TaskDetailView = () => {
                     label: `${member?.user.email} ${member?.user.firstName} ${member?.user.lastName}`
                 }
             ))}
-            />
+            />}
             </div>
+
             <TeamTable />
+            
           </div>
           <div className='lg:w-1/3'>
                {!loader && <CommentBox/>}

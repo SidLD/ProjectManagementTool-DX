@@ -51,6 +51,7 @@ export const login = async (req, res) => {
         res.status(400).send({ok:false,message: error.message})
     }
 }
+
 export const register = async (req, res) => {
     try {
         let params = req.body
@@ -65,6 +66,7 @@ export const register = async (req, res) => {
         res.status(400).send({ok:false,message: "Invalid Data or Email Already Taken"})
     }
 }
+
 export const getUsers = async (req, res) => {
     try {
         const params = req.query
@@ -94,6 +96,7 @@ export const getUsers = async (req, res) => {
         res.status(400).send({ok:false, message: error.message})
     }
 }
+
 export const updateUser = async (req, res) => {
     try {
         const userId = req.user.id
@@ -111,6 +114,7 @@ export const updateUser = async (req, res) => {
         res.status(400).send({ok:false, message: error.message})
     }
 }
+
 export const deleteUser = async (req, res) => {
     try {
         const userId = req.user.id

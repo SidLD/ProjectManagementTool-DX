@@ -79,11 +79,10 @@ export const getPermission = async (userId, projectId) => {
             return [
                 'EDIT-PROJECT',
                 'EDIT-TASK',
-                'VIEW-TASK',
                 'EDIT-MEMBER',
-                'VIEW-MEMBER',
                 'EDIT-ROLE',
-                'VIEW-ROLE',
+                'VIEW-PROJECT',
+                'DELETE-PROJECT',
             ]
         }else{
             const member = await prisma.teamMember.findFirst({
@@ -105,16 +104,7 @@ export const getPermission = async (userId, projectId) => {
                 }
             })
             const result = member?.role?.role_permissions.map(temp => temp.name) || []
-            /**
-             * VIEW PROJECT should only be available to the member, but some member might lose their role
-                when manager remove delete role without reasigning them first
-                A member can be part of the project but does not have any role
-                To solve the problem, I must check first wether the member is indeed a member
-                and if it is true, then add VIEW PROJECT permission
-             */
-            if(member){
-                result.push("VIEW-PROJECT")
-            }
+
             return result
         }
     } catch (error) {

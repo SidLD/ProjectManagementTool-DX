@@ -10,7 +10,7 @@ export const getTask = async (req, res) => {
         const userId = req.user.id
         const params = req.query
         const permissions = await getPermission(userId, projectId);
-        if(permissions.includes("VIEW-TASK") || permissions.includes("EDIT-TASK")){
+        if(permissions.includes("VIEW-PROJECT")){
             let data = await prisma.task.findMany({
                 where: {
                     ...params,
@@ -58,9 +58,9 @@ export const getAllTasks = async (req, res) => {
         const userId = req.user.id
         let query = req.query
         const start = parseInt(query.start)
-        const sort = query.sort
+        const sort = query.order
         delete query.start
-        delete query.sort
+        delete query.order
         const data = await prisma.task.findMany({
             where: {
                 ...query,
@@ -103,8 +103,9 @@ export const getAllTasks = async (req, res) => {
         })
         const ifAccessDatas = await Promise.all(
             data.map(async (task) => {
-                const tempPermissions = await getPermission(userId ,task.project.id)
-                if(tempPermissions.includes("VIEW-TASK")){
+                const tempPermissions = await getPermission(userId,task.project.id)
+                console.log(tempPermissions)
+                if(tempPermissions.includes("VIEW-PROJECT")){
                     task.permissions = tempPermissions
                     return task
                 }
@@ -116,6 +117,7 @@ export const getAllTasks = async (req, res) => {
         res.status(400).send({ok:false, message: error.message})
     }
 }
+
 export const taskCount = async (req, res) => {
     try {
         const userId = req.user.id
