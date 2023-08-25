@@ -15,20 +15,23 @@ export const CommentBox = () => {
     const [comments, setComments] = useState([])
     const [loader, setLoader] = useState(true)
     const [selectComment, setSelectComment] = useState(null)
+
     const handleRemoveComment = () => {
         setSelectComment(null)
     }
+
     const renderRecursiveComponent = () => {
         return comments.map((comment, index) => {
             return <RecursiveComment handleSelectComment={handleSelectComment} key={index} data={comment}/>
         })
     }
+
     const handleSelectComment = (item) => {
         setSelectComment(item)
     }
+
     const hanldeSubmitComment = async(message, ids) => {
         try {
-
             //Check if the message is a new comment or a reply
             if(selectComment !== null){
                 const payload = {
@@ -37,7 +40,6 @@ export const CommentBox = () => {
                     ids: ids
                 }
                 const response = await replyComment(task.id ,payload)
-                console.log("R",response.data.data)
                 if(response.data.ok){
                     socket.emit('createReply', response.data.data)
                     if(ids.length > 0) {
@@ -72,6 +74,7 @@ export const CommentBox = () => {
             console.log(error)
         }
     }
+
     useEffect(() => {
         const fetchComments = async () => {
             try {
@@ -93,6 +96,7 @@ export const CommentBox = () => {
         return () => socket.off('newComment', handleNewComment)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[task])
+
   return (
     <>
     {!loader && <>

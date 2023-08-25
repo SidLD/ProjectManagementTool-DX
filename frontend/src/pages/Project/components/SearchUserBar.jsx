@@ -2,6 +2,13 @@ import { Button, Modal, Select} from "antd";
 import {createTeamMember, getRoles, getUsers} from '../../../lib/api'
 import { useContext, useEffect, useState } from "react";
 import { PageContext } from "../../../lib/context";
+
+import { io } from 'socket.io-client'
+
+const socket = io(`${import.meta.env.VITE_API_URL}`,{
+  transports: ["websocket"] });
+
+
 export const SearchBar = () => {
     const {showMessage, projectId, fetchTeam} = useContext(PageContext)
     const [data, setData] = useState([{}]);
@@ -27,11 +34,13 @@ export const SearchBar = () => {
             }]
             const response = await createTeamMember(projectId, payload)
             if(response.data.ok){
+                
                 showMessage('success',"Success")
                 await fetchTeam()             
                 setIsModalOpen(false);
                 setSelectedUser({})
                 setSelectedRole([])
+                socket.emit('createMember', response.data.data)
             }else{
               showMessage('warning',"Something Went Wrong")
             }

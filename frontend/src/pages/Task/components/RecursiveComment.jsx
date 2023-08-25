@@ -25,17 +25,21 @@ export const RecursiveComment = ({data, handleSelectComment, reply = false}) => 
   return (
     <>
       <div onMouseOver={() => setShowDetail(true)} onMouseOut={() => setShowDetail(false)} 
-        className="my-2 w-full"
+        className="my-2 w-full "
       >
-        <div className="flex justify-end items-center">
-          {reply && <div>
-          <div className="text-gray-300 font-bold h-full">
-              <span className="">|</span>
-                {/* <svg className="h-8 w-8 text-white"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  strokeWidth="2"  strokeLinecap="round"  strokeLinejoin="round">  <polyline points="15 10 20 15 15 20" />  <path d="M4 4v7a4 4 0 0 0 4 4h12" /></svg> */}
-              </div>
-          </div>}
-          <p className="bg-slate-100 mr-1 break-words rounded-lg p-2 ">{data.detail}</p>
-          <Avatar> {data.user.firstName} {data.user.lastName}</Avatar>
+        <div className="flex flex-row-reverse w-[70%]  justify-end items-center">
+          {reply ? <>
+            <svg className="h-8 w-8 text-white"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  strokeWidth="2"  strokeLinecap="round"  strokeLinejoin="round">  <polyline points="9 10 4 15 9 20" />  <path d="M20 4v7a4 4 0 0 1-4 4H4" /></svg>
+                <p className=" bg-slate-200 mr-1 break-words rounded-lg p-2 ">{data.detail}</p>
+                <Avatar> {data.user.firstName} {data.user.lastName}</Avatar>
+              </>
+            :
+              <>
+                <p className="w-full bg-slate-200 mr-1 break-words rounded-lg p-2 ">{data.detail}</p>
+                <Avatar> {data.user.firstName} {data.user.lastName}</Avatar>
+              </>
+          }
+          
         </div>
         {showDetail &&  <div 
             className=" text-xs text-slate-50 ml-10 flex justify-evenly items-center">

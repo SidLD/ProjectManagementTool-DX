@@ -4,11 +4,11 @@ import { PageContext } from '../../../lib/context'
 import { UserTable } from './UserTable'
 import { Button, Checkbox, Col, Form, Input, Modal, Row, Tooltip } from 'antd'
 import { RoleTable } from './RoleTable'
-
 import {
     DeleteOutlined
   } from '@ant-design/icons';
 import { createRole, deleteProject } from '../../../lib/api'
+
 export const ProjectSetting = () => {
     const {loader, project, showMessage, navigate, allPermission, fetchRoles, userPermission} = useContext(PageContext)
     const [showModal, setShowModal] = useState(false)

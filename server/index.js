@@ -53,6 +53,12 @@ io.on("connection", (socket) => {
     socket.on("createComment", (data) => {
         io.sockets.in(data.taskId).emit('newComment',data);
     })
+    socket.on('createReply', (data) => {
+        io.sockets.in(data.taskId).emit('newReply',data);
+    })
+    socket.on('createMember', (data) => {
+        socket.broadcast.emit('newMember', "From Server")
+    })
     socket.on('createMention',async (data) => {
         socket.broadcast.emit('newMention', data = data.map(mentioned => (mentioned.userId)))
     })

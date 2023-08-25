@@ -109,11 +109,24 @@ export const Notification = () => {
 
     useEffect(() => {
       fetchNotification()
-      socket.once('newMention', async(data) => {
-        if(data.includes(auth.getUserInfo().id)){
-          await fetchNotification()
-        }
-      })
+      const handleNewMention = async(data) => {
+          if(data.includes(auth.getUserInfo().id)){
+            await fetchNotification()
+          }
+      }
+      const handleNewReply = async () => {
+        await fetchNotification()
+      }
+      const handleNewInvitation = async () => {
+        await fetchNotification()
+      }
+
+      socket.on('newMention', handleNewMention)
+      socket.on('newReply', handleNewReply)
+      socket.on('newMember', handleNewInvitation)
+      socket.off('newMention', handleNewMention)
+      socket.off('newReply', handleNewReply)
+      socket.off('newMember', handleNewInvitation)
     },[])
     
   return (
