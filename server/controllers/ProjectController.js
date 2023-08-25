@@ -46,7 +46,12 @@ export const getProjects = async (req, res) => {
                 where: {
                     OR: [
                         {AND: [
-                            {teamMembers: { some: { userId: req.user.id } }},
+                            {teamMembers: { 
+                                some: { 
+                                    userId: req.user.id,
+                                    status: "ACCEPTED" 
+                                }
+                            }},
                             {...params}
                         ]},
                         {AND: [
@@ -85,7 +90,7 @@ export const createProject = async (req, res) => {
         const data = await prisma.project.create({
             data: {
                 name: params.name,
-                description: params.descripion,
+                description: params.description,
                 startDate: new Date(params.startDate),
                 endDate: new Date(params.endDate),
                 manager: {
@@ -105,10 +110,23 @@ export const createProject = async (req, res) => {
 //Not Done
 export const updateProject = async (req, res) => {
     try {
-        const userId = req.user.id
         const projectId = req.params.projectId
-        const data = await getProjectUpdatePermission(projectId, userId)
-        res.status(200).send({ok: true, data})
+        const params = req.body
+        const permissions = await getPermission(req.user.id,projectId)
+        if(permissions.includes('EDIT-PROJECT')){
+            const data = await prisma.project.update({
+                where: {id: projectId},
+                data: {
+                    name: params.name,
+                    description: params.description,
+                    startDate: new Date(params.startDate),
+                    endDate: new Date(params.endDate)
+                }
+            })
+            res.status(200).send({ok: true, data})
+        }else{
+            res.status(403).send({ok:false, message: "Access Denied"})
+        }
     } catch (error) {
         console.log(error.message)
         res.status(400).send({ok:false, message: error.message})

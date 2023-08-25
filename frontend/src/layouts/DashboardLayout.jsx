@@ -54,8 +54,9 @@ export const DashboardLayout = () => {
                 limit: 4,
                 start: 0
             }
-          const response = await getProjects(payload)
-          setProjects(response.data?.data)
+            const response = await getProjects(payload)
+            setProjects(response.data?.data)
+
         } catch (error) {
           console.log(error)
         }
@@ -63,8 +64,8 @@ export const DashboardLayout = () => {
 
     useEffect(() => {
         fetchProject()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
+
     const values = {
         projects,
         fetchProject
@@ -91,7 +92,9 @@ export const DashboardLayout = () => {
                     <Header className=' flex justify-between items-center text-black bg-white dark:bg-slate-800'>
                     <Button className='md:hidden font-poppins text-start text-blue-500 border-none' onClick={handleShowMenu}>Menu</Button>
                     <Notification />
-                    <h1 className='hidden md:block dark:text-white uppercase text-sm mr-2 bold sm:text-xl '>Project Management Tool</h1>
+                    <h1 
+                        className='dark:shadow-md dark:shadow-blue-500 px-2 rounded-lg hidden md:block dark:text-white uppercase text-sm mr-2 bold sm:text-xl '>
+                        Project Management Tool</h1>
                         <DarkModeSwitch className='mr-5'
                             checked={isDarkMode}
                             onChange={toggleDarkMode}

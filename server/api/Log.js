@@ -3,7 +3,8 @@ import { verifyToken } from '../lib/verifyToken.js';
 import { getLogs } from '../controllers/LogController.js';
 
 const logAPI = express()
+const apiVersion = process.env.API_VERSION;
 
-logAPI.get("/task/log",verifyToken, getLogs);
+logAPI.get(`/${apiVersion}/tasks/logs`,verifyToken, getLogs);
 
 export default logAPI

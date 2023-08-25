@@ -4,7 +4,6 @@ import { PageContext } from '../../lib/context'
 import { ProjectView } from './view'
 import { useNavigate, useParams } from 'react-router-dom'
 import { message } from 'antd'
-import moment from "moment";
 import { 
   createTasks, 
   getAllPermission, 
@@ -13,8 +12,10 @@ import {
   getRoles, 
   getTasks, 
   getTeamMembers, 
+  updateProject, 
   updateTask} from '../../lib/api'
   import io from "socket.io-client";
+import dayjs from 'dayjs'
 
   //Need to add this before the component decleration
   const socket = io(`${import.meta.env.VITE_API_URL}`,{
@@ -27,11 +28,11 @@ export const Project = () => {
     const [project, setProject] = useState({})
     const [taskList, setTaskList] = useState([
       {
-        title: 'TO DO',
+        title: 'TO_DO',
         tasks: []
       },
       {
-        title: 'IN PROGRESS',
+        title: 'IN_PROGRESS',
         tasks: []
       },
       {
@@ -44,25 +45,26 @@ export const Project = () => {
     const [roles, setRoles] = useState([])
     const [team, setTeam] = useState([])
     const [allPermission, setAllPermission] = useState([])
-    const [query, setQuery] = useState("")
 
-    const handleQueryChange = (e) => {
-      setQuery(e)
-    } 
 
-    const fetchTasks = async (query) => {
+    const fetchTasks = async (query, order) => {
       try {
         const result = await Promise.all(taskList.map(async (list) => {
           const payload = {
             OR: [
-              {task: query},
+              {task: {contains: query}},
               {task_member: {
                 some: {
-                  role: { name: query }
+                  role: { 
+                     name: query
+                  }
                 }
               }},
-              {project: {name: query}}
+              {project: {
+                name: {contains: query}
+              }}
             ],
+            order: order,
             status: list.title
           }
           try {
@@ -97,6 +99,29 @@ export const Project = () => {
       }
     }
 
+    const handleSubmitEditProject = async (e) => {
+      try {
+        const payload = {
+          name: e.name,
+          description: e.description,
+          startDate: e.startEndTime[0],
+          endDate: e.startEndTime[1],
+      }
+        const response = await updateProject(projectId, payload)
+        if(response.data.ok){
+          await fetchProject("")
+          showMessage('success', 'Edit Saved')
+          return true
+        }else{
+          return false
+        }
+      } catch (error) {
+        console.log(error)
+        showMessage('warning', 'Edit Failed')
+        return false
+      }
+    }
+
     const submitTask = async (e) => {
       try {
         const payload = {
@@ -108,12 +133,13 @@ export const Project = () => {
         }
         const response = await createTasks(projectId, payload)
         if(response.data.ok){
+          await fetchTasks()
           showMessage('success', 'Success')
           return true
         }
       } catch (error) {
         console.log(error)
-        
+        showMessage('warning',error.response.data.message)
         return false
       }
     }
@@ -124,7 +150,7 @@ export const Project = () => {
           ...data,
           projectId, 
         }
-        const response = await getRoles(payload)    
+        const response = await getRoles(payload) 
         setRoles(response.data.data)
       } catch (error) {
         console.log(error)
@@ -164,9 +190,9 @@ export const Project = () => {
 
     //This Limit the task start time, since task should not have start time before the project start time
     const disabledDate = (current) => {
-      let customDate = new Date(project.startDate);
-      return current && current < moment(customDate, "YYYY-MM-DD");
-    }
+      // Can not select days before today and today
+      return dayjs(project.startDate).endOf('day') >= current || current >= dayjs(project.endDate).endOf('day');
+    };
     
     const showMessage = (type, content) => {
       messageAPI.open({
@@ -192,7 +218,8 @@ export const Project = () => {
         }
         const response = await updateTask(projectId, taskId, payload)
         if(response.data.ok){
-          showMessage('success', `Set Status to ${status}`)
+          await fetchProject()
+          showMessage('success', `Set Status to ${status.replace('_', ' ')}`)
           return true
         }
       } catch (error) {
@@ -204,7 +231,7 @@ export const Project = () => {
   //if destination is null === DId not drop in any droppable Column
   //if Destination index == source index === drop on the same column
   //Lastly get all the data 
-    const onDragEnd = async (e) => {
+  const onDragEnd = async (e) => {
       const {destination, source, draggableId} = e
       if (!destination) return;
       if(destination.droppableId === source.droppableId) return;
@@ -213,10 +240,9 @@ export const Project = () => {
       const selectedTask = sourceColumn.tasks.find(temp => temp.id === draggableId)
       let destinationColumn = taskList.find(temp => temp.title === destination.droppableId)
       
-      destinationColumn.tasks.push(selectedTask)
-      sourceColumn.tasks.splice(selectedTask, 1)
-      
-      if(handleStatusChange(selectedTask.project.id ,selectedTask.id, destinationColumn.title)){
+      if(await handleStatusChange(selectedTask.project.id ,selectedTask.id, destinationColumn.title)){
+        destinationColumn.tasks.push(selectedTask)
+        sourceColumn.tasks.splice(selectedTask, 1)
         setTaskList(taskList => taskList.map(column => {
           if(column.title === sourceColumn.title){
             return sourceColumn
@@ -239,13 +265,12 @@ export const Project = () => {
       fetchTeam()
       fetchTasks()
       setLoader(false)
-      socket.on('newUser', async () => {
-        await fetchTeam()
-      })
-      socket.on('removeUser', async () => {
-        await fetchTeam()
-      })
 
+      const handleNewUserLogin = async () => {
+        await fetchTeam()
+      } 
+      socket.on("newLoginUser", handleNewUserLogin)
+      return () => socket.off('newLoginUser', handleNewUserLogin) //Remove specific listener so that it wont call again, since by default socket will call this twice
     },[])
 
     //All data that requires the other component to render is passed here
@@ -259,9 +284,8 @@ export const Project = () => {
       navigate,
       disabledDate,
       submitTask, 
-      handleQueryChange,
+      handleSubmitEditProject,
       taskList,
-      query,
       contextHolder,
       loader,
       userPermission,

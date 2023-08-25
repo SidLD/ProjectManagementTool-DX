@@ -1,11 +1,10 @@
 let users = []
-let taskRoom = []
 
 export const addUser = (userId) => {
     users.push(userId)
 }
 export const removeUser = (userId) => {
-   delete users[userId]
+   users.splice(userId)
 }
 export const isOnline = (userId) => {
     return users.includes(userId)

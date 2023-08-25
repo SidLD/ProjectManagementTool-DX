@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react'
 import { PageContext } from '../../lib/context'
 import Search from 'antd/es/input/Search'
-import { Button,DatePicker, Drawer, Form, Input, Modal, Select, Table } from 'antd'
+import { Button,DatePicker, Drawer, Form, Input, Modal, Select, Table, Tooltip } from 'antd'
 
 import { TaskList } from '../../components/TaskList'
 import { ProjectDetail } from './components/ProjectDetail'
@@ -10,7 +10,7 @@ import { DragDropContext } from 'react-beautiful-dnd'
 
 export const ProjectView = () => {
   const {contextHolder, loader, submitTask,
-          disabledDate, team, handleQueryChange, onDragEnd, taskList, userPermission
+          disabledDate, team, fetchList, onDragEnd, taskList, userPermission
           } = useContext(PageContext)
   const [open, setOpen] = useState(false);
   const [showModal, setShowModal] = useState(false)
@@ -46,6 +46,16 @@ export const ProjectView = () => {
     }])
   }
 
+  const hanldeSubmitQuery = async (e) => {
+    if(e.trim() === ""){
+      await fetchList({})
+    }else{
+      console.log(e)
+      await fetchList(e)
+    }
+
+  } 
+
   const selectedUserTaskTableColumn = [
     {
       title: 'Name',
@@ -69,17 +79,29 @@ export const ProjectView = () => {
       <div >{contextHolder}
         <div className='flex-row xl:w-full xl:h-full'>
           <div className='bottom-200 left-2  m-2 flex justify-between gap-x-2 items-center'>
-              <Search className='w-1/4' onSearch={handleQueryChange} />
+              <Search className='w-1/4' onSearch={hanldeSubmitQuery} />
               {userPermission.includes('VIEW-PROJECT') && <>
-              {userPermission.includes('EDIT-PROJECT') &&  <Button 
-                className='w-8/12 border-2 text-slate-50 hover:text-black bg-blue-500'  
-                onClick={() => setShowModal(true)}>Create Task</Button>}
+                <div>
+                {userPermission.includes('EDIT-PROJECT') && <Tooltip color='blue' placement='left' title="Create Task">
+                    <Button 
+                      className='border-none'  
+                      onClick={() => setShowModal(true)}>
+                      <svg className="hover:scale-125  h-5 w-5 text-blue-500"  fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
+                    </Button>
+                  </Tooltip>}
 
-              <Button className='w-1/4 border-2 text-slate-50 hover:text-black bg-red-500'  onClick={showDrawer}>Project Detail</Button>
+                <Button className='border-none'  onClick={showDrawer}>
+                  <Tooltip color='blue' placement='left' title="Project Detail">
+                  <svg className="hover:scale-125  h-5 w-5 text-blue-500"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  strokeWidth="2"  strokeLinecap="round"  strokeLinejoin="round">  <circle cx="12" cy="12" r="3" />  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>                
+                  </Tooltip>
+                </Button>
+              </div>
               </>}
           </div>
           <div className='w-full'>
-            {!loader && <div className='m-2 md:grid-cols-3 md:mt-2 grid grid-cols-1 gap-3 rounded-lg font-poppins h-fit' >
+            {!loader && <div className='m-2 lg:grid-cols-3 md:grid-cols-2 md:mt-2 grid grid-cols-1 gap-3 rounded-lg font-poppins h-fit' >
               <DragDropContext
                 onDragEnd={onDragEnd} >
                   { taskList.map(({title, tasks}) => {
@@ -92,7 +114,7 @@ export const ProjectView = () => {
       </div>
       <Modal title="Create Task" open={showModal} onCancel={() => setShowModal(false)} footer={null}>
           <Form
-            onFinish={handleTaskFormOnSubmit}
+              onFinish={handleTaskFormOnSubmit}
             >
             <Form.Item label="Task Title" name="name"
               rules={[{ required: true, message: "Please add Title" }]}>
@@ -132,7 +154,7 @@ export const ProjectView = () => {
               </Form.Item>
               {selectedMemberForTask.length >= 1 && <Table 
                 dataSource={selectedMemberForTask} 
-                columns={selectedUserTaskTableColumn}/>}
+                columns={selectedUserTaskTableColumn} pagination={false}/>}
           </div>
           <Button className='flex justify-center' htmlType='submit'>Submit</Button>
           </Form>

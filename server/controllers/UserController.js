@@ -31,7 +31,7 @@ export const login = async (req, res) => {
                 Jwt.sign(
                     payload,
                     process.env.JWT_SECRET,
-                    { expiresIn: "1d" },
+                    { expiresIn: "12hr" },
                     async (err, token) => {
                         if(err){
                             res.status(400).send({ok:data, message: err.message})
@@ -56,7 +56,6 @@ export const register = async (req, res) => {
     try {
         let params = req.body
         params.password = await bcrypt.hash(params.password, 10);
-        console.log(params)
         const data = await prisma.user.create({
             data: params
         })

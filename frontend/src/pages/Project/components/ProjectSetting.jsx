@@ -88,10 +88,12 @@ export const ProjectSetting = () => {
 
         {!loader && <UserTable/>}
 
-        {userPermission.includes('EDIT-ROLE') &&  <Button 
-          className='mt-16 relative float-right  bg-yellow-400 font-bold my-5' 
+        {userPermission.includes('EDIT-ROLE') && <div className='w-full mb-2 mt-5 flex justify-end'>
+          <Button 
+          className='relative bg-yellow-400 font-bold ' 
           onClick={handleShowRoleModal}>Create Role</Button>
-}
+        </div>}
+
         {!loader && <RoleTable />}
 
         {userPermission.includes('DELETE-PROJECT') && <Tooltip title="This Will Delete All the tasks and projet" color='red'>

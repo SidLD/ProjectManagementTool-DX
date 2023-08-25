@@ -42,7 +42,7 @@ export const DashboardView = () => {
                 <div className='grid md:grid-cols-2 gap-1'>
                 {projects.length ? projects.map((project, index) => <ProjectCard project={project} key={index}/>)
                     :
-                    <h2 className='text-center w-full'>You have no Projects</h2>
+                    <h2 className='text-center w-full dark:text-white'>You have no Projects</h2>
                 }
                 </div>
             </div>

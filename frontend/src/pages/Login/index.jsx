@@ -1,16 +1,14 @@
 import { PageContext } from '../../lib/context.js'
-import { LoginView } from './view.jsx'
 import { message } from 'antd'
-import { login } from '../../lib/api.js'
+import { login, register } from '../../lib/api.js'
 import { auth } from '../../lib/services.js'
 import { useNavigate } from 'react-router-dom'
-import io from "socket.io-client";
-//Need to add this before the component decleration
-const socket = io(`${import.meta.env.VITE_API_URL}`,{
-         transports: ["websocket"] });
+import {LoginRegisterView} from './view.jsx'
+
 export const Login = () => {
     const [messageAPI, contextHolder] = message.useMessage()
     const navigate = useNavigate()
+
     const handleSubmitLogin = async (e) => {
         try {
             const payload = {
@@ -18,28 +16,49 @@ export const Login = () => {
                 password: e.password
             }
             const data = await login(payload)
-            const decodedData = auth.decode(data?.data?.token)
-            socket.emit('login', decodedData.id)
+      
             auth.storeToken("Bearer "+data.data.token)
+            
         } catch (error) {
-            warningMessage(error.response.data.data)
+            showMessage( 'warning',error.response.data.data)
         }
     }
 
-    const warningMessage = (message) => {
-        messageAPI.open({
-            type:'warning',
-            content:message 
-        })
+    const handleSubmitRegister = async (e) => {
+        try {
+          const payload = {
+            email : e.email,
+            password: e.password,
+            firstName: e.firstName,
+            lastName: e.lastName,
+            gender: e.gender,
+          }
+          const response = await register(payload)
+          if(response.data.ok){
+            showMessage('success', 'Success')
+            navigate("/login")
+          }
+        } catch (error) {
+          showMessage('warning', error.response.data.message)
+        }
     }
+
+    const showMessage = (type, content) => {
+      messageAPI.open({
+        type,
+        content,
+      })
+    }
+
     const values = {
         contextHolder,
         handleSubmitLogin,
+        handleSubmitRegister,
         navigate
     }
     return (
         <PageContext.Provider value={values}>
-            <LoginView />
+            <LoginRegisterView />
         </PageContext.Provider>
     )
 }

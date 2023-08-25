@@ -42,7 +42,7 @@ export const ProjectCard = ({project}) => {
                         <CaretRightOutlined />
                     </Button>
                 </Tooltip>
-                <h1 className='text-md font-poppins my-2 text-lg text-slate-950 '>{ project.name}</h1>
+                <h1 className='dark:text-slate-200 text-md font-poppins my-2 text-lg text-slate-950 '>{ project.name}</h1>
                 {!loader && <Avatar.Group maxCount={3} >
                         {team?.map((member,index) => (
                             <Tooltip key={index} title={`${member?.user?.firstName} ${member?.user?.lastName}`}>

@@ -11,10 +11,8 @@ export const CustomeDate = ({date, borderColor, title, color}) => {
         <h2 className="text-center uppercase">{title}</h2>
         <div className={`${borderColor} border-t-8 mt-2 shadow-md rounded-lg flex-row text-center justify-center content-center`}>
             <p className="uppercase text-2xl">{localDate.getFullYear().toString()}</p>
-            <p className={color}>{monthNames[localDate.getMonth()]} {localDate.getDay().toString()}</p>
-
+            <p className={color}>{monthNames[localDate.getMonth()]} {localDate.getDate().toString()}</p>
         </div>
-
     </div>
     </>
   )

@@ -8,11 +8,12 @@ import {
     updateUser
 } from '../controllers/UserController.js'
 import {verifyToken} from '../lib/verifyToken.js';
+const apiVersion = process.env.API_VERSION;
 
-userAPI.post('/login', login)
-userAPI.post("/register", register);
-userAPI.get("/user", verifyToken, getUsers)
-userAPI.put("/user",verifyToken, updateUser)
-userAPI.delete("/user",verifyToken, deleteUser)
+userAPI.post(`/${apiVersion}/login`, login)
+userAPI.post(`/${apiVersion}/register`, register);
+userAPI.get(`/${apiVersion}/users`, verifyToken, getUsers)
+userAPI.put(`/${apiVersion}/users`,verifyToken, updateUser)
+userAPI.delete(`/${apiVersion}/users`,verifyToken, deleteUser)
 
 export default userAPI

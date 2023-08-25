@@ -9,6 +9,7 @@ import { Mentions } from "./Mentions"
 //Need to add this before the component decleration
 const socket = io(`${import.meta.env.VITE_API_URL}`,{
          transports: ["websocket"] });
+
 export const CommentBox = () => {
     const {task} = useContext(PageContext)
     const [comments, setComments] = useState([])
@@ -25,7 +26,7 @@ export const CommentBox = () => {
     const handleSelectComment = (item) => {
         setSelectComment(item)
     }
-    const hanldeSubmitComment = async(message, savedMentions) => {
+    const hanldeSubmitComment = async(message, ids) => {
         try {
 
             //Check if the message is a new comment or a reply
@@ -33,12 +34,13 @@ export const CommentBox = () => {
                 const payload = {
                     detail:message, 
                     parentId:selectComment.id,
-                    mentions: savedMentions
+                    ids: ids
                 }
                 const response = await replyComment(task.id ,payload)
+                console.log("R",response.data.data)
                 if(response.data.ok){
-                    socket.emit('createComment', "From Client")
-                    if(savedMentions.length > 0) {
+                    socket.emit('createReply', response.data.data)
+                    if(ids.length > 0) {
                         socket.emit('createMention', "From Client")
                     }
                     return true
@@ -48,14 +50,14 @@ export const CommentBox = () => {
             }else{
                 const payload = {
                     detail: message,
-                    mentions: savedMentions
+                    ids: ids
                 }
                 const response = await createComment(task.id, payload)
                 if(response.data.ok){
                     try {
                         socket.emit('createComment', response.data.data)
-                        if(savedMentions.length > 0) {
-                            socket.emit('createMention', "From Client")
+                        if(response.data.data.mentions.length > 0) {
+                            socket.emit('createMention', response.data.data.mentions)
                         }
                     } catch (error) {
                         console.log(error)
@@ -87,17 +89,7 @@ export const CommentBox = () => {
             setComments(comments => [...comments, item])
         } 
         socket.on("newComment", handleNewComment)
-        
-        socket.on('newUser', async () => {
-            await fetchComments()
-        })
-        socket.on('removeUser', async () => {
-            await fetchComments()
-        })
-        socket.on('connectToRoom', (data) => {
-            console.log("Connect to Room  ",data)
-        })
-        
+
         return () => socket.off('newComment', handleNewComment)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[task])
@@ -115,7 +107,7 @@ export const CommentBox = () => {
                 <svg className="h-4 w-4 hover:scale-120 text-gray-500"  width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">  <path stroke="none" d="M0 0h24v24H0z"/>  <line x1="18" y1="6" x2="6" y2="18" />  <line x1="6" y1="6" x2="18" y2="18" /></svg>
             </Button>
         </div>}
-        <Mentions hanldeSubmitComment={hanldeSubmitComment}  task={task}/>
+            <Mentions hanldeSubmitComment={hanldeSubmitComment}  task={task}/>
         </div>
     </div>
         </>}

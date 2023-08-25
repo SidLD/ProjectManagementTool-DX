@@ -104,7 +104,6 @@ export const getAllTasks = async (req, res) => {
         const ifAccessDatas = await Promise.all(
             data.map(async (task) => {
                 const tempPermissions = await getPermission(userId,task.project.id)
-                console.log(tempPermissions)
                 if(tempPermissions.includes("VIEW-PROJECT")){
                     task.permissions = tempPermissions
                     return task
@@ -139,6 +138,7 @@ export const taskCount = async (req, res) => {
         res.status(400).send({ok:false, message: error.message})
     }    
 }
+
 //Only the current User Id can create their own project
 export const createTask = async (req, res) => {
     try {
@@ -153,8 +153,8 @@ export const createTask = async (req, res) => {
                     startDate : new Date(params.startDate),
                     description: params.description,
                     endDate: new Date(params.endDate),
-                    status: "TO DO",
-                    task_member: {
+                    status: "TO_DO",
+                    task_member: {  
                         connect: params?.members?.map((member) => ({id: member.id})) || []
                     },
                     project: {

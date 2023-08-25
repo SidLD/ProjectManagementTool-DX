@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client"
-import { defaultRoles } from "../lib/defaultRoles.js"
 const prisma = new PrismaClient()
 export const createRole = async (role, projectId) => {
     return new Promise((resolve, reject) => {

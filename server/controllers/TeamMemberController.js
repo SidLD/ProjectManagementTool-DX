@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client"
 import { getPermission } from "../repository/RoleRepository.js"
 import { isOnline } from "../lib/ClientBuckets.js"
+import { createNotifcation } from "../repository/NotificationRepository.js"
 const prisma = new PrismaClient()
 
 export const addTeamMember = async (req, res) => {
@@ -12,6 +13,7 @@ export const addTeamMember = async (req, res) => {
             let error = false
             const data = await Promise.all(
                 params.map(async (member) => {
+                    //Check if the user is Member or Manager, if not add them
                     const isMember = await prisma.teamMember.findMany({
                         where: {
                             AND: [
@@ -28,11 +30,12 @@ export const addTeamMember = async (req, res) => {
                             ]
                         }
                     })
+
                     if(isMember.length > 0 || isManager.length > 0){
                         error = true
                         return  
                     }else {
-                       return await prisma.teamMember.create({
+                       const newMember = await prisma.teamMember.create({
                         data: {
                             project: {
                                 connect: {
@@ -48,9 +51,11 @@ export const addTeamMember = async (req, res) => {
                                 connect: {
                                     id: member.roleId
                                 }
-                            }
+                            },
+                            status:"PENDING"
                         },
                         select:{
+                            id: true,
                             project: {
                                 select: {
                                     id: true,
@@ -70,7 +75,9 @@ export const addTeamMember = async (req, res) => {
                                 }
                             }
                         }
-                    }) 
+                        })
+                        await createNotifcation('INVITATION', newMember, req.user.id);
+                        return newMember 
                     }
                     
                 })
@@ -100,8 +107,11 @@ export const getTeamMembers = async (req, res) => {
         delete query.order
         const permissions = await getPermission(req.user.id, query.projectId)
         if(permissions.includes("VIEW-PROJECT")){
-            const data = await prisma.teamMember.findMany({
-                where: query,
+            let data = await prisma.teamMember.findMany({
+                where: {
+                    ...query,
+                    status: "ACCEPTED",
+                },
                 select:{
                     id: true,
                     role: {
@@ -116,7 +126,8 @@ export const getTeamMembers = async (req, res) => {
                             lastName: true,
                             id: true,
                         }
-                    }
+                    },
+                    status: true
 
                 },
                 orderBy: order || {
@@ -142,6 +153,23 @@ export const getTeamMembers = async (req, res) => {
         res.status(400).send({ok:false,message: "Invalid Data"})
     }   
 }
+
+export const updateTeamStatus = async (req, res) => {
+    try {
+        const {teamId} = req.params
+        const data = await prisma.teamMember.update({
+            where: {id : teamId},
+            data: {
+                status: "ACCEPTED"
+            }
+        })
+        res.status(200).send({ok:true, data}) 
+    } catch (error) {
+        console.log(error)
+        res.status(400).send({ok: false, message: "Invalid Data"})
+    }
+}
+
 export const updateTeamMember = async (req, res) => {
     try {
         const roleId = req.body.roleId
@@ -170,6 +198,7 @@ export const updateTeamMember = async (req, res) => {
         res.status(400).send({ok:false,message: "Invalid Data"})
     } 
 }
+
 export const findMember = async (req, res) => {
     try {
         const params = req.body
@@ -194,6 +223,7 @@ export const findMember = async (req, res) => {
         res.status(400).send({ok:false,message: "Invalid Data"})
     }   
 }
+
 export const deleteTeamMember = async (req, res) => {
     try {
         const projectId = req.params.projectId

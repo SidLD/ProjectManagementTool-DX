@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
-import { Avatar, Badge, Button, Modal,Select, Table, Tag, Tooltip } from 'antd';
-import { useContext, useState } from 'react';
+import { Avatar, Badge, Button, Modal,Select, Tag, Tooltip } from 'antd';
+import { useContext, useEffect, useState } from 'react';
 import { PageContext } from '../../../lib/context';
 import { deleteTeamMember, updateTeamMember } from '../../../lib/api';
-const { Column } = Table;
+import { CustomeTable } from '../../../components/CustomeTable';
+import { generateRandomStringColor } from '../../../lib/helper';
 
 export const UserTable = () => {
     const {roles, team, projectId, fetchTeam, fetchList, showMessage, userPermission} = useContext(PageContext)
@@ -12,16 +13,21 @@ export const UserTable = () => {
     const [selectedRoleForEdit, setSelectedRoleForEdit] = useState()
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage] = useState(2) 
+    const [items, setItems] = useState([])
+
     const handleRoleChange = (e) => {
       setSelectedRoleForEdit(e)
     }
+
     const handleShowModal = (id, type) => {
       setShowModal(true)
       setSelectedData({id, type})
     }
+
     const handleCancel = () => {
       setShowModal(false)
     }
+    
     const saveRemoveMember = async () => {
       try {
         const payload = {
@@ -40,6 +46,7 @@ export const UserTable = () => {
         showMessage('warning', error.response.data.message)
       }
     }
+
     const saveEditRole = async () => {
       if(selectedRoleForEdit) { 
         try {
@@ -63,18 +70,22 @@ export const UserTable = () => {
         showMessage('warning', 'Please Select Role')
       }
     }
+
     const onNextPage = async () => {
-      await fetchTeam({
-        start: postsPerPage * currentPage, 
-        limit: postsPerPage,
-        order: {
-          user: {
-            firstName: 'asc'
+      if(items.length > 0) {
+        await fetchTeam({
+          start: postsPerPage * currentPage, 
+          limit: postsPerPage,
+          order: {
+            user: {
+              firstName: 'asc'
+            }
           }
-        }
-      })
-      setCurrentPage(currentPage + 1)
+        })
+        setCurrentPage(currentPage + 1)
+      }
     }
+
     const onPrevPage = async () => {
       if((postsPerPage * (currentPage - 2) > -1)){
         await fetchTeam({
@@ -89,7 +100,32 @@ export const UserTable = () => {
         setCurrentPage(currentPage - 1)
       }
     }
-    const items = team.map((data) => (
+
+    const column = [
+      {
+        title: 'Username',
+        index: 'name',
+        isShow: true,
+      },
+      {
+        title: 'Role',
+        index: 'role',
+        isShow: true,
+      },
+      {
+        title: 'Status',
+        index: 'status',
+        isShow: true,
+      },
+      {
+        title: 'Action',
+        index: 'action',
+        isShow: userPermission.includes('EDIT-MEMBER')
+      }
+    ]
+
+    useEffect(() => {
+      setItems(team.map((data) => (
         {
             key: data.id,
             name: <div>
@@ -100,7 +136,8 @@ export const UserTable = () => {
                 </Tooltip>
                 <span>{`${data.user.firstName} ${data.user.lastName}`}</span>
             </div>,
-            role: (<Tag>{data?.role?.name }</Tag>),
+            role: (<Tag color={generateRandomStringColor()} className='dark:bg-white'>{data?.role?.name }</Tag>),
+            status: <Tag color={data.status === 'PENDING' ? 'yellow' : 'green'}>{data.status}</Tag>,
             action: <div className='flex justify-end'>
               <Tooltip  color='red' title={`Remove ${data.user.firstName} ${data.user.lastName}`}>
                 <Button onClick={() => handleShowModal(data.id, "Remove")}>
@@ -113,28 +150,24 @@ export const UserTable = () => {
                 </Button>
               </Tooltip>
             </div>
-
         }
-    ))
+      )))
+      
+    },[team])
 
   return (
     <>
-      <Table className='rounded-lg shadow-md' dataSource={items} pagination={false}>
-      <Column title="User" dataIndex="name" key="name" />
-      <Column
-        title="Role"
-        dataIndex="role"
-        key="role"
-      />
+      
+      <CustomeTable column={column}  dataSource={items} />
 
-      {userPermission.includes('EDIT-MEMBER') && <Column title="Action" dataIndex="action" key="action" />}
-    
-    </Table>
-    <div className='float-right my-5'>
-        <Button onClick={onPrevPage} >{`<`}</Button>
-        <span className='p-2'>{currentPage}</span>
-        <Button onClick={onNextPage}>{`>`}</Button>
+      <div className='flex w-full justify-end h-11 my-5'>
+        <div className='rounded-full p-[1px] border-blue-500 border-[1px]'>
+          <Button className='h-10 border-none bg-blue-500 rounded-full text-white' onClick={onPrevPage} >{`<`}</Button>
+            <span className='p-2'>{currentPage}</span>
+          <Button className='h-10 border-none bg-blue-500 rounded-full' onClick={onNextPage}>{`>`}</Button>
+        </div>
       </div>
+
     <Modal open={showModal} onCancel={handleCancel} footer={null}>
       {selectedData?.type?.toLowerCase() === "remove" ? 
         <>

@@ -12,11 +12,11 @@ export const Task = () => {
     const [dropStatus, setDropStatus] = useState(null)  //This state helps to render task list when succesfully droped on the other side
     const [taskList, setTaskList] = useState([
       {
-        title: 'TO DO',
+        title: 'TO_DO',
         tasks: []
       },
       {
-        title: 'IN PROGRESS',
+        title: 'IN_PROGRESS',
         tasks: []
       },
       {
@@ -97,11 +97,11 @@ export const Task = () => {
       let sourceColumn = taskList.find(item => item.title === source.droppableId)
       const selectedTask = sourceColumn.tasks.find(temp => temp.id === draggableId)
       let destinationColumn = taskList.find(temp => temp.title === destination.droppableId)
+
       
-      destinationColumn.tasks.push(selectedTask)
-      sourceColumn.tasks.splice(selectedTask, 1)
-      
-      if(handleStatusChange(selectedTask.project.id ,selectedTask.id, destinationColumn.title)){
+      if(await handleStatusChange(selectedTask.project.id ,selectedTask.id, destinationColumn.title)){
+        destinationColumn.tasks.push(selectedTask)
+        sourceColumn.tasks.splice(selectedTask, 1)
         setTaskList(taskList => taskList.map(column => {
           if(column.title === sourceColumn.title){
             return sourceColumn

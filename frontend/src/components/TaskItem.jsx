@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { Draggable } from "react-beautiful-dnd";
-import {TaskStatusColor} from "../lib/helper"
+import {TaskStatusColor, generateRandomStringColor} from "../lib/helper"
 import {Avatar, Button, Tag, Tooltip} from "antd"
 import { useNavigate } from "react-router-dom"
 import {
@@ -54,8 +54,9 @@ export const TaskItem = ({item, index}) => {
                     </div>
                 </div>
                 <div className="flex my-3 items-center">
-                    <Tag className="dark:bg-slate-900" color="purple" >{role.name}</Tag>
-                    <Tag className="dark:bg-slate-900" color="success">{item.project.name}</Tag>
+                    <Tag className="dark:bg-slate-900" color={generateRandomStringColor()} >{role.name}</Tag>
+                    <Tag className="dark:bg-slate-900" color={generateRandomStringColor()}>{item.project.name}</Tag>
+                    <Tag className="dark:bg-slate-900" color={TaskStatusColor(item).statusColor} >{item.status.replace('_', ' ')}</Tag>
                 </div>
                 <div className="my-2 w-[98%] flex  justify-between">
                     <div className={`dark:bg-slate-900 ${dateLeft.getDate() < 7  ? 'bg-red-200' : 'bg-blue-200'} rounded-3xl px-2 float-left`}>

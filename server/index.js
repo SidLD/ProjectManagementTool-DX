@@ -20,47 +20,56 @@ import teamMemberAPI from './api/TeamMember.js'
 import permissionAPI from './api/Permission.js'
 import logAPI from './api/Log.js'
 import commentAPI from './api/Comment.js'
-import mentionAPI from './api/Mention.js'
-/* Uncomment this to Generate All Permissions - Cid
-import { generateDefaultPermissions } from './repository/PermissionRepository.js'
-generateDefaultPermissions()
-*/
+import notificationAPI from './api/Notification.js'
+
+
 // Socket IO for Real Time HTTPS
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
 
-import { removeUser, addUser} from './lib/ClientBuckets.js'
+import { removeUser, addUser, getClients} from './lib/ClientBuckets.js'
+import { createNotifcation } from './repository/NotificationRepository.js'
 io.on("connection", (socket) => {
-    socket.on("login", (userId) => {
-        addUser(userId)
-        socket.broadcast.emit('newUser')
+    socket.on("login", async (data) => {
+        addUser(data.userId)
+        await Promise.all(
+            data.projectIds.map((ids) => {
+                socket.join(ids)
+                io.sockets.in(ids).emit('newLoginUser', `⚡: Someone Joined to Room ${ids}`);
+            })
+        )
     })
-    socket.on('logout', (userId) => {
-        removeUser(userId)
-        socket.broadcast.emit('removeUser')
-    })
-    socket.on('createMention', (data) => {
-        socket.broadcast.emit('newMention', 'From Server')
+    socket.on('logout', async (data) => {
+        removeUser(data.userId)
+        await Promise.all(
+            data.projectIds.map((ids) => {
+                socket.leave(ids)
+                io.sockets.in(ids).emit('removeUser', `⚡: Someone Left to Room ${ids}`);
+            })
+        )
     })
     socket.on("createComment", (data) => {
         io.sockets.in(data.taskId).emit('newComment',data);
+    })
+    socket.on('createMention',async (data) => {
+        socket.broadcast.emit('newMention', data = data.map(mentioned => (mentioned.userId)))
     })
     socket.on("createTask", (data) => {
         console.log(`⚡: A New Comment ${data}`);
         socket.broadcast.emit('newTask', "From Server")
     })
     socket.on("joinRoom", (taskId) => {
-        console.log(`⚡: Someone Joined to`, taskId);
+        console.log(`⚡: Someone Joined to Room `, taskId);
         socket.join(taskId)
-        io.sockets.in(taskId).emit('connectToRoom', "You are in room no. "+taskId);
+        io.sockets.in(taskId).emit('connectToRoom', `⚡: Someone Joined to Room ${taskId}`);
 
     })
 });
 
 //END of SOCKET IO
-app.use(mentionAPI)
+app.use(notificationAPI)
 app.use(commentAPI)
 app.use(logAPI)
 app.use(permissionAPI)
@@ -71,16 +80,16 @@ app.use(taskAPI)
 app.use(teamMemberAPI)
 //END of API
 app.post('*', (req, res) => {
-    res.status(401).send({message: "URI not FOUND"})
+    res.status(404).send({message: "URI not FOUND"})
 })
 app.get('*', (req, res) => {
-    res.status(401).send({message: "URI not FOUND"})
+    res.status(404).send({message: "URI not FOUND"})
 })
 app.put('*', (req, res) => {
-    res.status(401).send({message: "URI not FOUND"})
+    res.status(404).send({message: "URI not FOUND"})
 })
 app.delete('*', (req, res) => {
-    res.status(401).send({message: "URI not FOUND"})
+    res.status(404).send({message: "URI not FOUND"})
 })
 
 const port = process.env.PORT

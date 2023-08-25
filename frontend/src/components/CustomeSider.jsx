@@ -50,7 +50,7 @@ export const CustomeSider = () => {
         try {
             const payload = {
                 name: e.name,
-                descripion: e.descripion,
+                description: e.description,
                 startDate: e.startEndTime[0],
                 endDate: e.startEndTime[1],
             }
@@ -58,6 +58,7 @@ export const CustomeSider = () => {
           if(result.data.ok){
             socket.emit('createTask', payload)
             showMessage('success', 'Success')
+            setShowModal(false)
             await fetchProject()
             navigate(`/project/${result.data.data.id}`)
           }
@@ -71,7 +72,7 @@ export const CustomeSider = () => {
         try {
             const complete = await getTaskCount({status: 'COMPLETED'})
             setCompletedTask(complete.data.data)
-            const open = await getTaskCount({status: 'TO DO'})
+            const open = await getTaskCount({status: 'TO_DO'})
             setOpenTask(open.data.data)
         } catch (error) {
             console.log(error)
@@ -84,6 +85,7 @@ export const CustomeSider = () => {
             await fetchProject(e.target.value)
         }, 2000)
     }
+    
     useEffect(() => {
         getTaskNum()
     },[])
@@ -181,7 +183,7 @@ export const CustomeSider = () => {
                 > 
                     <Input />
                 </Form.Item>
-                <Form.Item label="Description" name="descripion"
+                <Form.Item label="Description" name="description"
                     rules={[
                     {
                         required: true,
@@ -204,7 +206,7 @@ export const CustomeSider = () => {
                 />
                 </Form.Item>
                 <Button className="w-full bg-blue-500 hover:text-slate-50" htmlType="submit">Create Project</Button>
-                </Form>
+        </Form>
         </Modal>
         </>
     )

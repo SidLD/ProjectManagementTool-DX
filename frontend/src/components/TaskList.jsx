@@ -11,11 +11,11 @@ export const TaskList = ({title, tasks}) => {
     <Droppable droppableId={title}>
         {(provided) => (
           <div 
-            className="bg-slate-300 dark:bg-slate-800 md:h-[80vh] rounded-lg p-2"
+            className="bg-slate-300 dark:bg-slate-800 md:h-[80vh] rounded-lg p-2 overflow-x-hidden overflow-y-scroll"
             {...provided.droppableProps}
             ref={provided.innerRef}
             >
-            <h2 className="dark:text-white font-poppins text-lg">{title}</h2>
+            <h2 className="dark:text-white font-poppins text-lg">{title.replace('_', ' ')}</h2>
 
 
             {tasks.map((task, index) => <TaskItem key={task.id} index={index} item={task}/>  )}

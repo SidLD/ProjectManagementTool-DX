@@ -126,7 +126,6 @@ export const updateRole = async (req, res) => {
         const roleId = req.params.roleId
         const params = req.body
         const permissions = await getPermission(req.user.id)
-        console.log(params)
         if(permissions.includes("EDIT-ROLE")){
             const data = await prisma.role.update({
                 where: {
@@ -136,9 +135,9 @@ export const updateRole = async (req, res) => {
                 data: {
                     name: params?.name,
                     role_permissions: {
-                        connect: params.permissions.map(p => ({id:p})) || []
+                        set: params.permissions.map(p => ({id:p})) || []
                     }
-                }
+                },
             })
             res.status(200).send({ok: true, data})
         }else{

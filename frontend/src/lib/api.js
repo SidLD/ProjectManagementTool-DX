@@ -5,7 +5,7 @@ import { dataHeader } from "./helper";
 export const register = (data) => {
     return new Promise((resolve, reject) => {
       axios
-        .post(`${import.meta.env.VITE_API_URL}/register`, data, dataHeader())
+        .post(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/register`, data, dataHeader())
         .then((res) => {
           resolve(res);
         })
@@ -14,10 +14,11 @@ export const register = (data) => {
         });
     });
 };
+
 export const login = (data) => {
     return new Promise((resolve, reject) => {
       axios
-        .post(`${import.meta.env.VITE_API_URL}/login`, data, dataHeader())
+        .post(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/login`, data, dataHeader())
         .then((res) => {
           resolve(res);
         })
@@ -26,10 +27,11 @@ export const login = (data) => {
         });
     });
 };
+
 export const getUsers = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/user`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/users`, 
         {
           params: data,
           ...dataHeader()
@@ -48,7 +50,7 @@ export const getUsers = (data) => {
 export const getPermission = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/permission`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/permissions`, 
         {
           params: data,
           ...dataHeader()
@@ -61,10 +63,11 @@ export const getPermission = (data) => {
       });
   });
 };
+
 export const getAllPermission = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/permissions`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/all-permissions`, 
         {
           params: data,
           ...dataHeader()
@@ -83,7 +86,7 @@ export const getAllPermission = (data) => {
 export const getRoles = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/role`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/roles`, 
         {
           params: data,
           ...dataHeader()
@@ -96,10 +99,11 @@ export const getRoles = (data) => {
       });
   });
 }
+
 export const getUserRole = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/user/role`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/users/roles`, 
         {
           params: data,
           ...dataHeader()
@@ -112,10 +116,11 @@ export const getUserRole = (data) => {
       });
   });
 }
+
 export const createRole = (projectId, data) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/project/${projectId}/role`, data, dataHeader())
+      .post(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/roles`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -124,10 +129,11 @@ export const createRole = (projectId, data) => {
       });
   });
 }
+
 export const updateRole = (projectId, roleId, data) => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/role/${roleId}`, data, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/roles/${roleId}`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -136,10 +142,11 @@ export const updateRole = (projectId, roleId, data) => {
       });
   });
 };
+
 export const deleteRole = (projectId, data) => {
   return new Promise((resolve, reject) => {
     axios
-      .delete(`${import.meta.env.VITE_API_URL}/project/${projectId}/role`, 
+      .delete(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/roles`, 
         {
           data, 
           ...dataHeader()
@@ -159,7 +166,7 @@ export const deleteRole = (projectId, data) => {
 export const getProjects = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/project`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects`, 
         {
           params: data,
           ...dataHeader()
@@ -172,10 +179,11 @@ export const getProjects = (data) => {
       });
   });
 };
+
 export const createProject = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/project`, data, dataHeader())
+      .post(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -184,10 +192,24 @@ export const createProject = (data) => {
       });
   });
 };
+
+export const updateProject = (projectId, data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
 export const deleteProject = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .delete(`${import.meta.env.VITE_API_URL}/project`, 
+      .delete(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects`, 
         {
           data, 
           ...dataHeader()
@@ -207,7 +229,7 @@ export const deleteProject = (data) => {
 export const getTasks = (projectId, data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/project/${projectId}/task`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/tasks`, 
         {
           params: data,
           ...dataHeader()
@@ -220,10 +242,11 @@ export const getTasks = (projectId, data) => {
       });
   });
 };
+
 export const getTaskCount = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/task/count`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/tasks/counts`, 
         {
           params: data,
           ...dataHeader()
@@ -236,10 +259,11 @@ export const getTaskCount = (data) => {
       });
   });
 };
+
 export const getAllTasks = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/project/tasks`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/tasks`, 
         {
           params: data,
           ...dataHeader()
@@ -252,11 +276,12 @@ export const getAllTasks = (data) => {
       });
   });
 };
+
 //Array ine
 export const createTasks = (projectId, data) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/project/${projectId}/task`, data, dataHeader())
+      .post(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/tasks`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -265,10 +290,11 @@ export const createTasks = (projectId, data) => {
       });
   });
 };
+
 export const updateTask = (projectId,taskId,data) => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/task/${taskId}`, data, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/tasks/${taskId}`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -277,10 +303,11 @@ export const updateTask = (projectId,taskId,data) => {
       });
   });
 };
+
 export const subcribeTask = (projectId,taskId,data) => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/task/${taskId}/member/subcribe`, data, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/tasks/${taskId}/members/subcribe`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -289,10 +316,11 @@ export const subcribeTask = (projectId,taskId,data) => {
       });
   });
 };
+
 export const unsubcribeTask = (projectId,taskId,data) => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/task/${taskId}/member/unsubcribe`, data, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/tasks/${taskId}/members/unsubcribe`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -305,7 +333,7 @@ export const unsubcribeTask = (projectId,taskId,data) => {
 export const deleteTask = (projectId,data) => {
   return new Promise((resolve, reject) => {
     axios
-      .delete(`${import.meta.env.VITE_API_URL}/project/${projectId}/task`, 
+      .delete(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/tasks`, 
         {
           data, 
           ...dataHeader()
@@ -325,7 +353,7 @@ export const deleteTask = (projectId,data) => {
 export const getTeamMembers = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/project/member`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/members`, 
         {
           params: data,
           ...dataHeader()
@@ -338,10 +366,11 @@ export const getTeamMembers = (data) => {
       });
   });
 };
+
 export const createTeamMember = (projectId, data) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/project/${projectId}/member`, data, dataHeader())
+      .post(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/members`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -354,7 +383,20 @@ export const createTeamMember = (projectId, data) => {
 export const updateTeamMember = (projectId,memberId,data) => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/project/${projectId}/member/${memberId}`, data, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/members/${memberId}`, data, dataHeader())
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const updateTeamStatus = (memberId,data) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/members/${memberId}/status`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -367,7 +409,7 @@ export const updateTeamMember = (projectId,memberId,data) => {
 export const deleteTeamMember = (projectId,data) => {
   return new Promise((resolve, reject) => {
     axios
-      .delete(`${import.meta.env.VITE_API_URL}/project/${projectId}/member`, 
+      .delete(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/projects/${projectId}/members`, 
         {
           data, 
           ...dataHeader()
@@ -388,7 +430,7 @@ export const deleteTeamMember = (projectId,data) => {
 export const getLogs = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/task/log`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/tasks/logs`, 
         {
           params: data,
           ...dataHeader()
@@ -407,7 +449,7 @@ export const getLogs = (data) => {
 export const createComment = (taskId, data) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/task/${taskId}/comment`, data, dataHeader())
+      .post(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/tasks/${taskId}/comments`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -420,7 +462,7 @@ export const createComment = (taskId, data) => {
 export const replyComment = (taskId, data) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/task/${taskId}/comment/reply`, data, dataHeader())
+      .post(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/tasks/${taskId}/comments/reply`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -433,7 +475,7 @@ export const replyComment = (taskId, data) => {
 export const getComment = (taskId, data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/task/${taskId}/comment`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/tasks/${taskId}/comments`, 
         {
           params: data,
           ...dataHeader()
@@ -450,7 +492,7 @@ export const getComment = (taskId, data) => {
 export const getReplyComment = (commentId, data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/task/comment/${commentId}/reply`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/tasks/comments/${commentId}/reply`, 
         {
           params: data,
           ...dataHeader()
@@ -466,10 +508,10 @@ export const getReplyComment = (commentId, data) => {
 // END OF LOGS API
 
 //START OF Mention API
-export const getMention = (data) => {
+export const getNotifications = (data) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/mention`, 
+      .get(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/notifications`, 
         {
           params: data,
           ...dataHeader()
@@ -483,10 +525,10 @@ export const getMention = (data) => {
   });
 };
 
-export const updateMention = (data) => {
+export const updateNotifications = (notificationId,data) => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/mention`, data, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/notifications/${notificationId}`, data, dataHeader())
       .then((res) => {
         resolve(res);
       })
@@ -496,10 +538,10 @@ export const updateMention = (data) => {
   });
 };
 
-export const updateAllMention = () => {
+export const updateAllNotifications = () => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/mentions`, {}, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/${import.meta.env.VITE_API_VERSION}/all-mentions`, {}, dataHeader())
       .then((res) => {
         resolve(res);
       })

@@ -6,10 +6,11 @@ import {
     updateProject } from '../controllers/ProjectController.js';
     import {verifyToken} from '../lib/verifyToken.js';
 const projectAPI = express()
+const apiVersion = process.env.API_VERSION;
 
-projectAPI.get("/project",verifyToken, getProjects);
-projectAPI.post("/project",verifyToken, createProject)
-projectAPI.put("/project/:projectId",verifyToken, updateProject)
-projectAPI.delete("/project", verifyToken, deleteProject)
+projectAPI.get(`/${apiVersion}/projects`,verifyToken, getProjects);
+projectAPI.post(`/${apiVersion}/projects`,verifyToken, createProject)
+projectAPI.put(`/${apiVersion}/projects/:projectId`,verifyToken, updateProject)
+projectAPI.delete(`/${apiVersion}/projects`, verifyToken, deleteProject)
 
 export default projectAPI

@@ -60,7 +60,7 @@ export const SearchBar = () => {
                const response =  await getUsers(payload)
                setData(response.data.data)
                
-            },2000)
+            },500)
         } catch (error) {
             setData([])
             // console.log(error)

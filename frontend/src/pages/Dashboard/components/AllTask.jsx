@@ -11,16 +11,12 @@ export const AllTask = () => {
   const [loader, setLoader] = useState(true)
   // eslint-disable-next-line no-unused-vars
 
-
   const fetchTasks = async () => {
-    
     try {
       const payload = {
-          status:"IN PROGRESS"
+          status:"IN_PROGRESS"
       }
-      
       const response = await getAllTasks(payload)
-      console.log(response.data.data)
       setTasks(response.data.data)
     } catch (error) {
       console.log(error)
@@ -43,7 +39,7 @@ export const AllTask = () => {
           <Button className="border-none uppercase text-center">Load 30 more days</Button>
         </div>
         </>
-      : <h2 className="text-center h-10 flex items-center justify-center">You have no task here.</h2>}
+      : <h2 className="text-center h-10 flex items-center justify-center dark:text-white">You have no task here.</h2>}
     </div>}
     </>
   )

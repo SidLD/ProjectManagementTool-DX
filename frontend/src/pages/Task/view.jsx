@@ -33,7 +33,7 @@ export const TaskView = () => {
     ]
 
     const handleOrder = () => {
-       if(order === 'ASC') {
+       if(order === 'asc') {
         setOrder('desc')
        } else{
         setOrder('asc')
@@ -70,7 +70,7 @@ export const TaskView = () => {
             defaultValue={options[0]}
             onSelect={handleSelectChange}/>
             <Button onClick={handleOrder} className='dark:text-slate-200 uppercase mx-2'>
-              {order === 'ASC' ? "ASCENDING" : "DESCENDING"}
+              {order === 'asc' ? "ASCENDING" : "DESCENDING"}
             </Button>
         </div>
         <div className='flex justify-start items-center'>

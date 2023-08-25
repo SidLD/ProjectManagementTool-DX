@@ -8,15 +8,18 @@ export const TaskStatusColor = (item) => {
     let text = ""
     let border =""
     let backGroundColor = ""
+    let statusColor = ""
     switch (item.status) {
-        case "IN PROGRESS": 
+        case "IN_PROGRESS": 
+            statusColor = "yellow"
             color = "text-yellow-500"
             nextColor = "bg-green-500"
             backGroundColor = "bg-yellow-500"
             text = "Click to Complete Task"
             border = "border-b-8 border-yellow-500"
             break;
-        case "TO DO": 
+        case "TO_DO": 
+            statusColor = "blue"
             color = "text-blue-500"
             backGroundColor = "bg-blue-500"
             nextColor = "bg-yellow-500"
@@ -25,6 +28,7 @@ export const TaskStatusColor = (item) => {
             break;
 
         default: 
+            statusColor = "green"
             color = "text-green-500"
             backGroundColor = "bg-green-500"
             nextColor = "bg-blue-500"
@@ -37,11 +41,12 @@ export const TaskStatusColor = (item) => {
         backGroundColor,
         color,
         nextColor,
-        border
+        border,
+        statusColor
     }
 }
 export const generateRandomStringColor = () => {
-    const colors = ['blue', 'green', 'red']
+    const colors = ['blue', 'green', 'yellow', 'purple', 'orange']
     return colors[Math.floor(Math.random()*colors.length)]
 }
 export const formatDate = (date) => {

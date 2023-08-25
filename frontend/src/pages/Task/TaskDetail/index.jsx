@@ -10,9 +10,9 @@ import {
     unsubcribeTask,
     updateTask } from "../../../lib/api"
 import { message} from "antd"
-import moment from "moment";
 import { TaskDetailView } from "./view"
 import { PageContext } from "../../../lib/context";
+import dayjs from "dayjs";
 
 export const TaskDetail = () => {
     const {projectId, taskId} = useParams()
@@ -25,39 +25,33 @@ export const TaskDetail = () => {
     const navigate = useNavigate()
 
     const disabledDate = (current) => {
-      let customDate = new Date(project.startDate);
-      return current && current < moment(customDate, "YYYY-MM-DD");
-    }
+      // Can not select days before today and today
+      return dayjs(project.startDate).endOf('day') >= current || current >= dayjs(project.endDate).endOf('day');
+    };
 
-    // const handleSaveEdit = () => {
-    //   try {
-    //     let startDate = task.startDate
-    //     let endDate = task.endDate
-    //     if(newDate[0] || newDate[1]){
-    //      startDate = newDate[0]
-    //      endDate = newDate[1] 
-    //     }
-    //     const payload = {
-    //       task: task.task,
-    //       description: task.description,
-    //       startDate: startDate,
-    //       endDate: endDate
-    //     }
-    //     console.log(payload)
-    //   } catch (error) {
-    //     console.log(error)
-    //     showMessage('warning', error?.response?.data?.message)
-    //   }
-    // }
-    // const onChangeTaskTitle = (e) => {
-    //   setTask({...task,  task:e.target.value})
-    // }
-    // const onChangeDescription = (e) => {
-    //   setTask({...task,  description:e.target.value}) 
-    // }
-    // const handleCalendarChange = (e) => {
-    //   setNewDate(e)
-    // }
+    const handleSaveEdit = async (e) => {
+      try {
+        const payload = {
+          task: e.name,
+          description: e.description,
+          startDate: new Date(e.startEndTime[0]),
+          endDate: new Date(e.startEndTime[1])
+        }
+        const response = await updateTask(projectId, task.id , payload)
+          if(response.data.ok){
+            showMessage('success', `Success`)
+            await fetchLogs()
+            await fetchTask()
+            return true
+          }else{
+            return false
+          }
+      } catch (error) {
+        console.log(error)
+        showMessage('warning', error?.response?.data?.message)
+        return false
+      }
+    }
 
     const showMessage = (type, content) => {
         messageAPI.open({
@@ -105,19 +99,20 @@ export const TaskDetail = () => {
         try {
           let nextStatus = ""
           switch (task.status) {
-            case "TO DO":
-              nextStatus = "IN PROGRESS"
+            case "TO_DO":
+              nextStatus = "IN_PROGRESS"
               break;
-            case "IN PROGRESS":
+            case "IN_PROGRESS":
               nextStatus = "COMPLETED"
               break
             default:
-              nextStatus = "TO DO"
+              nextStatus = "TO_DO"
               break;
           }
           const response = await updateTask(projectId, task.id ,{status:nextStatus})
           if(response.data.ok){
             showMessage('success', `Set Status to ${nextStatus}`)
+            await fetchLogs()
             await fetchTask()
           }
         } catch (error) {
@@ -200,7 +195,6 @@ export const TaskDetail = () => {
             memberId
           }
           const response = await unsubcribeTask(task.project.id, task.id, payload)
-          console.log(response)
           if(response.data.ok){
             showMessage('success', `Success`)
             await fetchTask()
@@ -228,6 +222,7 @@ export const TaskDetail = () => {
         navigate,
         handleStatusChange,
         handleDeleteTask,
+        handleSaveEdit,
         showMessage,
         disabledDate,
         handleAddUser,

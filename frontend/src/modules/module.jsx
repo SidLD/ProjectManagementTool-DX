@@ -12,6 +12,7 @@ export const PublicLayout = () => {
         </div>
     )
 }
+
 export const PrivateLayout = () => {
     if (!auth.isAuthenticated()) {
         return <Navigate to={"/login"} />;

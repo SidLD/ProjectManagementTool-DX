@@ -1,15 +1,16 @@
 /* eslint-disable react/prop-types */
-import { Button, Checkbox, Col, Input, Modal, Row, Table, Tag, Tooltip } from 'antd';
-import { useContext, useState } from 'react';
+import { Button, Checkbox, Col, Input, Modal, Row, Tag, Tooltip } from 'antd';
+import { useContext, useEffect, useState } from 'react';
 import { PageContext } from '../../../lib/context';
 import { deleteRole, updateRole } from '../../../lib/api';
-const { Column } = Table;
+import { CustomeTable } from '../../../components/CustomeTable';
 
 export const RoleTable = () => {
     const {projectId, roles, allPermission, fetchRoles, fetchTeam, showMessage, userPermission} = useContext(PageContext)
     const [selectedRole, setSelectedRole] = useState({})
     const [showModal, setShowModal] = useState(false)
     const [currentPage, setCurrentPage] = useState(1);
+    const [items, setItems] = useState([])
     const [postsPerPage] = useState(2) 
 
     const onChangePermission = (e) => {
@@ -59,16 +60,18 @@ export const RoleTable = () => {
               name: selectedRole.name,
               permissions: selectedRole.selectedPermission
             }
+  
             const response = await updateRole(projectId,selectedRole.id, payload)
             if(response.data.ok){
               showMessage('success', 'Success')
               await fetchRoles({
-                start: postsPerPage * currentPage, 
+                start: 0, 
                 limit: postsPerPage,
                 order: {
                   name: 'asc'
                 }
               })
+
             }
           } catch (error) {
             console.log(error)
@@ -90,7 +93,8 @@ export const RoleTable = () => {
       setShowModal(false)
     }
     
-    const items = roles.map((data) => (
+    useEffect(() => {
+      setItems(roles.map((data) => (
         {
             key: data.id,
             name: data.name,
@@ -124,17 +128,20 @@ export const RoleTable = () => {
               </Tooltip>
             </div>
         }
-    ))
+    )))
+    },[roles])
 
     const onNextPage = async () => {
-      await fetchRoles({
-        start: postsPerPage * currentPage, 
-        limit: postsPerPage,
-        order: {
-          name: 'asc'
-        }
-      })
-      setCurrentPage(currentPage + 1)
+      if(items.length > 0) {
+        await fetchRoles({
+          start: postsPerPage * currentPage, 
+          limit: postsPerPage,
+          order: {
+            name: 'asc'
+          }
+        })
+        setCurrentPage(currentPage + 1)
+      }
     }
 
     const onPrevPage = async () => {
@@ -150,24 +157,36 @@ export const RoleTable = () => {
       }
     }
 
+    const column = [
+      {
+        title: 'Role',
+        isShow: true,
+        index: 'name'
+      },
+      {
+        title: 'Permissions',
+        index: 'permissions',
+        isShow: true,
+      },
+      {
+        title: 'Action',
+        index: 'action',
+        isShow: userPermission.includes('EDIT-ROLE')
+      }
+    ]
+
   return (
     <>
-    <Table className='rounded-lg shadow-md' dataSource={items} pagination={false}>
-      <Column title="Role" dataIndex="name" key="name" />
-      <Column
-        title="Permissions"
-        dataIndex="permissions"
-        key="permissions"
-      />
+    <CustomeTable column={column}  dataSource={items} />
 
-      {userPermission.includes('EDIT-ROLE') && <Column title="Action" dataIndex="action" key="action" />}
-
-    </Table>
-      <div className='float-right my-5'>
-        <Button onClick={onPrevPage} >{`<`}</Button>
-        <span className='p-2'>{currentPage}</span>
-        <Button onClick={onNextPage}>{`>`}</Button>
+      <div className='flex w-full justify-end h-11 my-5'>
+        <div className='rounded-full p-[1px] border-blue-500 border-[1px]'>
+          <Button className='h-10 border-none bg-blue-500 rounded-full text-white' onClick={onPrevPage} >{`<`}</Button>
+            <span className='p-2'>{currentPage}</span>
+          <Button className='h-10 border-none bg-blue-500 rounded-full' onClick={onNextPage}>{`>`}</Button>
+        </div>
       </div>
+
       <Modal open={showModal} destroyOnClose={true} onCancel={handleCancel} footer={null}>
           {selectedRole.type == "edit" ? <>
               <div className='w-4/5 mb-2'>

@@ -1,15 +1,16 @@
 import { PrismaClient } from "@prisma/client"
 import { isOnline } from "../lib/ClientBuckets.js"
+import { createNotifcation } from "../repository/NotificationRepository.js"
 const prisma = new PrismaClient()
 export const createComment = async (req, res) => {
     try {
         
         // detail: message,
-        // mentions: savedMentions
+        // ids: mentioned user id
         const taskId = req.params.taskId
         const params = req.body
         const userId = req.user.id
-        let data = await prisma.comment.create({
+        let result = await prisma.comment.create({
             data:{
                 detail: params.detail,
                 user: {
@@ -21,7 +22,8 @@ export const createComment = async (req, res) => {
                     connect: {
                         id: taskId
                     }
-                }
+                },
+
             },
             select: {
                 taskId: true,
@@ -37,29 +39,34 @@ export const createComment = async (req, res) => {
                 }
             }
         })
-        data.user.isActive = true
-        if(params.mentions){
-            await Promise.all(
-                params.mentions.map(async (userEmail) => {
-                    const users = await prisma.user.findMany({
-                        where: {email: userEmail}
-                    })
-                    const user = users[0]
-                    await prisma.mention.create({
-                        data: {
-                            comment:{
-                                connect: {id: data.id}
-                            },
-                            users: {
-                                connect: {id: user.id}
+        result.user.isActive = true
+        if(params?.ids.length > 0){
+           const mentions =  await Promise.all(
+                //Need to manually create each mention so that we can get the id and use it to create notification
+                params.ids.map(async (mentionedUserId) => {
+                    try {
+                       const createdMention =  await prisma.mention.create({
+                            data: {
+                                comment:{
+                                    connect: {id: result.id}
+                                },
+                                user: {
+                                    connect: {id: mentionedUserId}
+                                }
                             }
-                        }
-                    })
+                        })
+                        await createNotifcation('MENTION', createdMention, userId);
+                        return createdMention
+                    } catch (error) {
+                        console.log(error)
+                    }
                 })
             )
+            
+            result.mentions = mentions
         }
 
-        res.status(200).send({ok:true, data})
+        res.status(200).send({ok:true, data:result})
     } catch (error) {
         console.log(error)
         res.status(400).send({ok:false, message: error.message})
@@ -67,13 +74,14 @@ export const createComment = async (req, res) => {
 }
 export const replyComment = async (req, res) => {
     try {
-        const detail = req.body.detail
+        const params = req.body
         const taskId = req.params.taskId
         const parentId = req.body.parentId
         const userId = req.user.id
-        const data = await prisma.comment.create({
+        //Create Comment
+        let data = await prisma.comment.create({
             data:{
-                detail: detail,
+                detail: params.detail,
                 user: {
                     connect: {
                         id: userId
@@ -84,15 +92,40 @@ export const replyComment = async (req, res) => {
                      id: parentId
                     }
                 },
-                
                 task: {
                     connect: {
                         id: taskId
                     }
                 }
-            }
+            },
         })
-
+        //Create Mention
+        if(params?.ids.length > 0){
+            const mentions =  await Promise.all(
+                 //Need to manually create each mention so that we can get the id and use it to create notification
+                 params.ids.map(async (mentionedUserId) => {
+                     try {
+                        const createdMention =  await prisma.mention.create({
+                             data: {
+                                 comment:{
+                                     connect: {id: result.id}
+                                 },
+                                 user: {
+                                     connect: {id: mentionedUserId}
+                                 }
+                             }
+                         })
+                         await createNotifcation('MENTION', createdMention, userId);
+                         return createdMention
+                     } catch (error) {
+                         console.log(error)
+                     }
+                 })
+             )
+            data.mentions = mentions
+        }
+        //Create Reply Notification
+        await createNotifcation('REPLY', data, userId);
         res.status(200).send({ok:true, data})
     } catch (error) {
         console.log(error)

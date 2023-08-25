@@ -5,6 +5,13 @@ import { getPermission, getProjects } from '../../lib/api'
 import { message } from 'antd'
 import { useNavigate } from 'react-router-dom'
 
+
+import io from "socket.io-client";
+import { auth } from '../../lib/services'
+//Need to add this before the component decleration
+const socket = io(`${import.meta.env.VITE_API_URL}`,{
+         transports: ["websocket"] });
+
 export const Dashboard = () => {
     const [loader, setLoader] = useState(true)
     const [messageAPI, contextHolder] = message.useMessage()
@@ -52,6 +59,7 @@ export const Dashboard = () => {
              }
             const response = await getProjects(payload)
             setProjects(response.data?.data)
+            
         } catch (error) {
             showMessage('warning', "Server Error")
         }
@@ -78,12 +86,30 @@ export const Dashboard = () => {
                  }
                 const response = await getProjects(payload)
                 setProjects(response.data?.data)
+                //Emit the project ids
+                const handleEmitUser = async () => {
+                    socket.emit('login', 
+                        {
+                            projectIds: response.data?.data.map(project => (project.id)),
+                            userId: auth.getUserInfo().id
+                        }
+                    )
+                }
+                handleEmitUser()
+                socket.off('login', handleEmitUser)
             } catch (error) {
                 showMessage('warning', "Server Error")
             }
         }
         initProject()
         setLoader(false)
+
+        //Emit the project ids
+        const handleLogoutUser = async () => {
+            await initProject()
+        }
+        socket.on('removeUser', handleLogoutUser)
+        socket.off('removeUser', handleLogoutUser)
     }, [])
 
     const values = {

@@ -3,11 +3,12 @@ import { createRole, deleteRole, getRoles, getUserRole, updateRole } from '../co
 import { verifyToken } from '../lib/verifyToken.js';
 
 const roleAPI = express()
+const apiVersion = process.env.API_VERSION;
 
-roleAPI.get("/role",verifyToken, getRoles);
-roleAPI.get('/user/role', verifyToken, getUserRole)
-roleAPI.post("/project/:projectId/role",verifyToken, createRole)
-roleAPI.put("/project/:projectId/role/:roleId",verifyToken, updateRole)
-roleAPI.delete("/project/:projectId/role", verifyToken, deleteRole)
+roleAPI.get(`/${apiVersion}/roles`,verifyToken, getRoles);
+roleAPI.get(`/${apiVersion}/users/roles`, verifyToken, getUserRole)
+roleAPI.post(`/${apiVersion}/projects/:projectId/roles`,verifyToken, createRole)
+roleAPI.put(`/${apiVersion}/projects/:projectId/roles/:roleId`,verifyToken, updateRole)
+roleAPI.delete(`/${apiVersion}/projects/:projectId/roles`, verifyToken, deleteRole)
 
 export default roleAPI
