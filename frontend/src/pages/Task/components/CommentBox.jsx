@@ -45,6 +45,8 @@ export const CommentBox = () => {
                     if(ids.length > 0) {
                         socket.emit('createMention', "From Client")
                     }
+                    
+                    handleRemoveComment()
                     return true
                 }else{
                     return false

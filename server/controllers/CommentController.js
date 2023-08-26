@@ -98,6 +98,9 @@ export const replyComment = async (req, res) => {
                     }
                 }
             },
+            include: {
+                task:  true
+            }
         })
         //Create Mention
         if(params?.ids.length > 0){
@@ -184,7 +187,8 @@ export const getReplyComment = async (req, res) => {
                         firstName: true,
                         lastName: true
                     }
-                }
+                },
+                taskId: true
             },
             orderBy: {
                 createdAt: 'asc'

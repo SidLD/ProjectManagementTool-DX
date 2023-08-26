@@ -22,7 +22,6 @@ import logAPI from './api/Log.js'
 import commentAPI from './api/Comment.js'
 import notificationAPI from './api/Notification.js'
 
-
 // Socket IO for Real Time HTTPS
 import { createServer } from 'http'
 import { Server } from 'socket.io'
@@ -30,31 +29,41 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
 
 import { removeUser, addUser, getClients} from './lib/ClientBuckets.js'
-import { createNotifcation } from './repository/NotificationRepository.js'
+import { getUserConnectedUsers } from './repository/UserRepository.js'
+
 io.on("connection", (socket) => {
-    socket.on("login", async (data) => {
-        addUser(data.userId)
-        await Promise.all(
-            data.projectIds.map((ids) => {
-                socket.join(ids)
-                io.sockets.in(ids).emit('newLoginUser', `⚡: Someone Joined to Room ${ids}`);
-            })
-        )
+    socket.on("login", async (userId) => {
+        addUser(userId)
+        socket.join(userId)
+        // const users = await getUserConnectedUsers(userId)
+        // users.map(user => {
+        //     socket.to(user).emit('addUser', `⚡`);
+        // })
+        socket.broadcast.emit('addUser')
     })
-    socket.on('logout', async (data) => {
-        removeUser(data.userId)
-        await Promise.all(
-            data.projectIds.map((ids) => {
-                socket.leave(ids)
-                io.sockets.in(ids).emit('removeUser', `⚡: Someone Left to Room ${ids}`);
-            })
-        )
+
+    socket.on('logout', async (userId) => {
+        removeUser(userId)
+        // socket.leave(userId)
+        // const users = await getUserConnectedUsers(userId)
+        // users.map(user => {
+        //     socket.to(user).emit('removeUser', `⚡`);
+        // })
+        socket.broadcast.emit('removeUser')
+
+        socket.disconnect()
     })
+
     socket.on("createComment", (data) => {
         io.sockets.in(data.taskId).emit('newComment',data);
     })
+    
     socket.on('createReply', (data) => {
+        console.log(data.taskId)
         io.sockets.in(data.taskId).emit('newReply',data);
+        // socket.join(data.task.projectId)
+        // console.log(data)
+        // socket.broadcast.to(data.task.projectId).emit('newReply',data);
     })
     socket.on('createMember', (data) => {
         socket.broadcast.emit('newMember', "From Server")
@@ -63,13 +72,13 @@ io.on("connection", (socket) => {
         socket.broadcast.emit('newMention', data = data.map(mentioned => (mentioned.userId)))
     })
     socket.on("createTask", (data) => {
-        console.log(`⚡: A New Comment ${data}`);
-        socket.broadcast.emit('newTask', "From Server")
+        console.log(`⚡: A New Task ${data}`);
+        socket.broadcast.emit('newTask', data)
     })
     socket.on("joinRoom", (taskId) => {
         console.log(`⚡: Someone Joined to Room `, taskId);
         socket.join(taskId)
-        io.sockets.in(taskId).emit('connectToRoom', `⚡: Someone Joined to Room ${taskId}`);
+        io.sockets.in(taskId).emit('connectToRoom', `⚡: Someone Joined to Task Room ${taskId}`);
 
     })
 });

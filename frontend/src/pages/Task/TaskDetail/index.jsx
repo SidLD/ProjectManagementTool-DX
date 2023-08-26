@@ -232,6 +232,7 @@ export const TaskDetail = () => {
         loader,
         contextHolder,
         task,
+        taskId,
         projectId,
         
       }

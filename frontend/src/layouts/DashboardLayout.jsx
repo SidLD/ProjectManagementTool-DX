@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {Button, Layout} from 'antd'
 import {Outlet} from 'react-router-dom'
 import {Content, Header} from 'antd/es/layout/layout'
@@ -5,7 +6,7 @@ import { useEffect, useState} from 'react';
 import {DarkModeSwitch} from 'react-toggle-dark-mode';
 import Sider from 'antd/es/layout/Sider';
 import { CustomeSider } from '../components/CustomeSider';
-import { getProjects } from '../lib/api';
+import { getNotifications, getProjects } from '../lib/api';
 import { AppContext } from '../lib/context';
 import { auth } from '../lib/services';
 import {Notification} from '../components/Notification'
@@ -17,6 +18,8 @@ export const DashboardLayout = () => {
     const [projects, setProjects] = useState([])
     const [showMenu, setShowMenu] = useState(false)
     const [collapsed, setCollapsed] = useState(false);
+    const [notification, setNotifications] = useState([])
+    const [loader, setLoader] = useState(true)
     const [isDarkMode, setDarkMode] = useState(theme === "dark" ? true : false)
     
     if (theme === "dark") {
@@ -62,11 +65,26 @@ export const DashboardLayout = () => {
         }
     }
 
+
+    const fetchNotification = async () => {
+        try {
+          const response = await getNotifications({})
+          setNotifications(response.data.data)
+        } catch (error) {
+          console.log(error)
+        }
+      }
+
     useEffect(() => {
+        fetchNotification()
         fetchProject()
+        setLoader(false)
     },[])
 
     const values = {
+        loader,
+        fetchNotification,
+        notification,
         projects,
         fetchProject
     }

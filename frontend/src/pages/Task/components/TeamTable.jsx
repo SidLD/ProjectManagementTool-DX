@@ -7,7 +7,7 @@ import { PageContext } from '../../../lib/context'
 import {CustomeTable} from '../../../components/CustomeTable'
 
 export const TeamTable = () => {
-    const {task, handleRemoveUser, userPermission} = useContext(PageContext)
+    const {task, handleRemoveUser, userPermission, taskId} = useContext(PageContext)
     const [members, setMembers] = useState([])
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage] = useState(2) 
@@ -37,12 +37,14 @@ export const TeamTable = () => {
                 ...data,
                 team_tasks: {
                     some: {
-                        id: task?.id
+                        id: taskId
                     }
                 },
                 projectId: task?.project?.id, 
               }
+            console.log(payload)
             const response = await getTeamMembers(payload)
+            console.log(response.data.data)
             setMembers(
               response.data.data.map(member => ({
                 key:member.user.id,
@@ -117,8 +119,8 @@ export const TeamTable = () => {
 
 
     useEffect(() => {
-        getTaskMember()
-    },[])
+      getTaskMember()
+    },[task])
     
   return (
     <>

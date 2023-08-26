@@ -266,12 +266,21 @@ export const Project = () => {
       fetchTasks()
       setLoader(false)
 
-      const handleNewUserLogin = async () => {
+      const handleNewUser = async () => {
+        console.log("add User")
         await fetchTeam()
-      } 
-      socket.on("newLoginUser", handleNewUserLogin)
-      return () => socket.off('newLoginUser', handleNewUserLogin) //Remove specific listener so that it wont call again, since by default socket will call this twice
-    },[])
+      }
+      socket.on("addUser", handleNewUser)
+      socket.off('newComment', handleNewUser)
+
+      const handleRemoveUser = async () => {
+        console.log("remove User")
+        await fetchTeam()
+      }
+      socket.on('removeUser', handleRemoveUser)
+      socket.off('removeUser', handleRemoveUser)
+      
+    },[projectId])
 
     //All data that requires the other component to render is passed here
     const values = {

@@ -3,14 +3,13 @@ let users = []
 export const addUser = (userId) => {
     users.push(userId)
 }
+
 export const removeUser = (userId) => {
-   users.splice(userId)
+   users = users.filter(ids => ids != userId)
 }
+
 export const isOnline = (userId) => {
     return users.includes(userId)
 }
-export const getClients = () => users;
 
-export const addTaskRoom = (taskId) => {
-    
-}
+export const getClients = () => users;

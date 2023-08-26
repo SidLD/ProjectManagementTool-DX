@@ -152,7 +152,6 @@ export const UserTable = () => {
             </div>
         }
       )))
-      
     },[team])
 
   return (

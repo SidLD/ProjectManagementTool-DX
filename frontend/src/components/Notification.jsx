@@ -1,18 +1,19 @@
 /* eslint-disable react/prop-types */
 import { Avatar, Badge, Button, Modal, Tooltip } from 'antd';
-import { useEffect, useState } from 'react'
-import {  getNotifications, updateAllNotifications, updateNotifications, updateTeamStatus } from '../lib/api';
+import { useContext, useEffect, useState } from 'react'
+import {  updateAllNotifications, updateNotifications, updateTeamStatus } from '../lib/api';
 import { formatDate } from '../lib/helper';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { auth } from '../lib/services';
+import { AppContext } from '../lib/context';
 
 //Need to add this before the component decleration
 const socket = io(`${import.meta.env.VITE_API_URL}`,{
   transports: ["websocket"] });
 
 export const Notification = () => {
-    const [notifications, setNotifications] = useState([])
+    const {notification, fetchNotification, loader} = useContext(AppContext)
     const [openNotification, setOpenNotification] = useState(false)
     const [showInvitationModal, setShowInvitationModal] = useState(false)
     const [selectedNotifaction, setSelectedNotification] = useState({})
@@ -94,43 +95,29 @@ export const Notification = () => {
             </div>
     };
 
-    const fetchNotification = async () => {
-      try {
-        const response = await getNotifications({})
-        setNotifications(response.data.data)
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
     const countUnreadNotification = () => {
-      return notifications?.filter(item => !item.isRead).length
+      return notification?.filter(item => !item.isRead).length
     }
 
     useEffect(() => {
       fetchNotification()
+
       const handleNewMention = async(data) => {
           if(data.includes(auth.getUserInfo().id)){
             await fetchNotification()
           }
       }
-      const handleNewReply = async () => {
-        await fetchNotification()
-      }
+
       const handleNewInvitation = async () => {
         await fetchNotification()
       }
 
       socket.on('newMention', handleNewMention)
-      socket.on('newReply', handleNewReply)
       socket.on('newMember', handleNewInvitation)
-      socket.off('newMention', handleNewMention)
-      socket.off('newReply', handleNewReply)
-      socket.off('newMember', handleNewInvitation)
     },[])
     
   return (
-        <>
+    !loader && <>
               <Button className='dark:shadow-blue-500 dark:shadow-sm   shadow-md border-none '
                   onClick={
                       () => setOpenNotification(!openNotification)
@@ -144,10 +131,10 @@ export const Notification = () => {
                 {openNotification && (<div 
                     className="dark:bg-slate-950 absolute top-16 z-40 p-2 shadow-2xl w-96 h-72 overflow-y-scroll rounded-lg mt-1 border-gray-400 bg-white">
                     
-                      {notifications && notifications.length > 0 ? (
+                      {notification && notification.length > 0 ? (
                         <div
                           className={`${
-                            notifications.length <= 4 ? "mb-0" : "mb-6"
+                            notification.length <= 4 ? "mb-0" : "mb-6"
                           }`}
                         >
                             <div className='flex justify-end h-fit  w-full '>
@@ -156,7 +143,7 @@ export const Notification = () => {
                                 Read All
                             </Button>
                             </div>
-                          {notifications.map((item, idx) => {
+                          {notification.map((item, idx) => {
                             return notificationRenderer(item, idx);
                           })}
                         </div>

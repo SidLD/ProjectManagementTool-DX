@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useLayoutEffect, useState } from 'react'
 import { PageContext } from '../../lib/context'
 import { DashboardView } from './view'
@@ -86,30 +87,19 @@ export const Dashboard = () => {
                  }
                 const response = await getProjects(payload)
                 setProjects(response.data?.data)
-                //Emit the project ids
-                const handleEmitUser = async () => {
-                    socket.emit('login', 
-                        {
-                            projectIds: response.data?.data.map(project => (project.id)),
-                            userId: auth.getUserInfo().id
-                        }
-                    )
-                }
-                handleEmitUser()
-                socket.off('login', handleEmitUser)
             } catch (error) {
                 showMessage('warning', "Server Error")
             }
         }
         initProject()
         setLoader(false)
-
+        
         //Emit the project ids
-        const handleLogoutUser = async () => {
-            await initProject()
+        const handleEmitUser = async () => {
+            socket.emit('login', auth.getUserInfo().id)
         }
-        socket.on('removeUser', handleLogoutUser)
-        socket.off('removeUser', handleLogoutUser)
+        handleEmitUser()
+        
     }, [])
 
     const values = {
