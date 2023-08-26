@@ -103,7 +103,7 @@ export const getTeamMembers = async (req, res) => {
         const start = parseInt(query.start)
         const order = query.order
         delete query.start
-        delete query.limit
+        delete query.limit 
         delete query.order
         const permissions = await getPermission(req.user.id, query.projectId)
         if(permissions.includes("VIEW-PROJECT")){
