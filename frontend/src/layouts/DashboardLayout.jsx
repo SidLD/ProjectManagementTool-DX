@@ -11,6 +11,11 @@ import { AppContext } from '../lib/context';
 import { auth } from '../lib/services';
 import {Notification} from '../components/Notification'
 import OutsideClickHandler from 'react-outside-click-handler';
+import io from "socket.io-client";
+//Need to add this before the component decleration
+const socket = io(`${import.meta.env.VITE_API_URL}`,{
+         transports: ["websocket"] });
+
 
 export const DashboardLayout = () => {
     const theme = localStorage.getItem('theme')
@@ -74,18 +79,50 @@ export const DashboardLayout = () => {
           console.log(error)
         }
       }
+    
+    const handleLogout = () => {
+        socket.emit('logout', auth.getUserInfo().id)
+        auth.clear()
+    }
+
+    const handleNotificationEmit = (ids) => {
+        try {
+            socket.emit('createNotification', ids)
+        } catch (error) {
+            console.log("err" ,error)
+        }
+    }
 
     useEffect(() => {
         fetchNotification()
         fetchProject()
         setLoader(false)
+        
+        //Socket only listen to where the socket is delared and joined, therefor I need to catch
+        //all socket emit in root layout
+        const handleLogin = async () => {
+            socket.emit('login', auth.getUserInfo().id)
+        }
+        handleLogin()
+
+        const handleNewNotification = async () => {
+            try {
+                await fetchNotification()
+            } catch (error) {
+                console.log("er ",error)
+            }
+        }
+        socket.on('newNotification', handleNewNotification)
     },[])
 
     const values = {
         loader,
+        socket,
         fetchNotification,
+        handleNotificationEmit,
         notification,
         projects,
+        handleLogout,
         fetchProject
     }
 

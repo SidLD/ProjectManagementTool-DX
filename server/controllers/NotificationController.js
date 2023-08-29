@@ -104,7 +104,6 @@ export const updateAllMention = async (req, res) => {
                 isRead: true  
             }
         })
-        console.log(data)
         res.status(200).send({ok: true, data, message: "Success"})
     } catch (error) {
         res.status(400).send({ok:false, message: error.message})

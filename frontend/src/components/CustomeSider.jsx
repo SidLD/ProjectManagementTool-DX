@@ -146,7 +146,7 @@ export const CustomeSider = () => {
                     key: `/project/${
                         item.id
                     }`,
-                    icon: <Progress strokeWidth={4} percent={item.progress} type="circle" trailColor={"white"} size={35} />,
+                    icon: <Progress strokeWidth={4} percent={(Math.round(item.progress  * 100) / 100).toFixed(1)} type="circle" trailColor={"white"} size={35} />,
                     label:<p>{item.name} </p>
                 }))
             }/>

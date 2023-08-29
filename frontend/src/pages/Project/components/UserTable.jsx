@@ -128,7 +128,7 @@ export const UserTable = () => {
       setItems(team.map((data) => (
         {
             key: data.id,
-            name: <div>
+            name: <div className='w-full flex justify-start items-center ml-5'>
                 <Tooltip title={data.isActive ? 'online': 'offline'}>
                   <Badge dot status={data.isActive ? 'success': 'default'} className='mr-2'> 
                     <Avatar shape="square">{`${data.user.firstName}`}</Avatar>

@@ -3,7 +3,7 @@ import { Button } from "antd"
 import { useContext, useEffect, useState } from "react"
 import { createComment, getComment, replyComment } from "../../../lib/api"
 import { RecursiveComment } from "./RecursiveComment"
-import { PageContext } from "../../../lib/context"
+import { AppContext, PageContext } from "../../../lib/context"
 import io from "socket.io-client";
 import { Mentions } from "./Mentions"
 //Need to add this before the component decleration
@@ -12,11 +12,12 @@ const socket = io(`${import.meta.env.VITE_API_URL}`,{
 
 export const CommentBox = () => {
     const {task} = useContext(PageContext)
+    const {handleNotificationEmit} = useContext(AppContext)
     const [comments, setComments] = useState([])
     const [loader, setLoader] = useState(true)
     const [selectComment, setSelectComment] = useState(null)
 
-    const handleRemoveComment = () => {
+    const handleRemoveSelectedComment = () => {
         setSelectComment(null)
     }
 
@@ -42,11 +43,8 @@ export const CommentBox = () => {
                 const response = await replyComment(task.id ,payload)
                 if(response.data.ok){
                     socket.emit('createReply', response.data.data)
-                    if(ids.length > 0) {
-                        socket.emit('createMention', "From Client")
-                    }
-                    
-                    handleRemoveComment()
+                    handleNotificationEmit(ids)
+                    handleRemoveSelectedComment()
                     return true
                 }else{
                     return false
@@ -60,8 +58,8 @@ export const CommentBox = () => {
                 if(response.data.ok){
                     try {
                         socket.emit('createComment', response.data.data)
-                        if(response.data.data.mentions.length > 0) {
-                            socket.emit('createMention', response.data.data.mentions)
+                        if(ids.length > 0) {
+                            handleNotificationEmit(ids)
                         }
                     } catch (error) {
                         console.log(error)
@@ -73,7 +71,7 @@ export const CommentBox = () => {
             }
             
         } catch (error) {
-            console.log(error)
+            console.log("err",error)
         }
     }
 
@@ -109,7 +107,7 @@ export const CommentBox = () => {
         <div className="w-full">
         {selectComment !== null && <div className={`h-5 bg-slate-400 rounded-lg flex justify-between px-3 text-gray-500`}>
              replying to {selectComment.length > 20 ? selectComment.detail.substring(0,20) : selectComment.detail}
-            <Button className="h-5 border-none" onClick={handleRemoveComment}>
+            <Button className="h-5 border-none" onClick={handleRemoveSelectedComment}>
                 <svg className="h-4 w-4 hover:scale-120 text-gray-500"  width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">  <path stroke="none" d="M0 0h24v24H0z"/>  <line x1="18" y1="6" x2="6" y2="18" />  <line x1="6" y1="6" x2="18" y2="18" /></svg>
             </Button>
         </div>}

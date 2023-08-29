@@ -7,12 +7,6 @@ import { message } from 'antd'
 import { useNavigate } from 'react-router-dom'
 
 
-import io from "socket.io-client";
-import { auth } from '../../lib/services'
-//Need to add this before the component decleration
-const socket = io(`${import.meta.env.VITE_API_URL}`,{
-         transports: ["websocket"] });
-
 export const Dashboard = () => {
     const [loader, setLoader] = useState(true)
     const [messageAPI, contextHolder] = message.useMessage()
@@ -93,12 +87,6 @@ export const Dashboard = () => {
         }
         initProject()
         setLoader(false)
-        
-        //Emit the project ids
-        const handleEmitUser = async () => {
-            socket.emit('login', auth.getUserInfo().id)
-        }
-        handleEmitUser()
         
     }, [])
 

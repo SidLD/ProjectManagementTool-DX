@@ -4,13 +4,8 @@ import { useContext, useEffect, useState } from 'react'
 import {  updateAllNotifications, updateNotifications, updateTeamStatus } from '../lib/api';
 import { formatDate } from '../lib/helper';
 import { useNavigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
-import { auth } from '../lib/services';
 import { AppContext } from '../lib/context';
 
-//Need to add this before the component decleration
-const socket = io(`${import.meta.env.VITE_API_URL}`,{
-  transports: ["websocket"] });
 
 export const Notification = () => {
     const {notification, fetchNotification, loader} = useContext(AppContext)
@@ -63,7 +58,7 @@ export const Notification = () => {
     }
 
     const notificationRenderer = (data, index) => {
-      const date = formatDate(data.createdAt)
+      const date = formatDate(new Date(data.createdAt))
       let content = ""
 
       if(data.type === "INVITATION"){
@@ -89,7 +84,6 @@ export const Notification = () => {
                 <p>{`${date.min}m`}</p>
                 <p>{`${date.hour}hr`}</p>
                 <p>{`${date.day}`}</p>
-
                 </span>         
               </div>
             </div>
@@ -101,19 +95,6 @@ export const Notification = () => {
 
     useEffect(() => {
       fetchNotification()
-
-      const handleNewMention = async(data) => {
-          if(data.includes(auth.getUserInfo().id)){
-            await fetchNotification()
-          }
-      }
-
-      const handleNewInvitation = async () => {
-        await fetchNotification()
-      }
-
-      socket.on('newMention', handleNewMention)
-      socket.on('newMember', handleNewInvitation)
     },[])
     
   return (

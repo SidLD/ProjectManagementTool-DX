@@ -35,23 +35,26 @@ io.on("connection", (socket) => {
     socket.on("login", async (userId) => {
         addUser(userId)
         socket.join(userId)
-        // const users = await getUserConnectedUsers(userId)
-        // users.map(user => {
-        //     socket.to(user).emit('addUser', `⚡`);
-        // })
-        socket.broadcast.emit('addUser')
+        const users = await getUserConnectedUsers(userId)
+        
+        Promise.all(
+            users.map(async user => {
+                io.sockets.to(user).emit('newUser', `⚡`);
+            })
+        )
     })
 
     socket.on('logout', async (userId) => {
         removeUser(userId)
-        // socket.leave(userId)
-        // const users = await getUserConnectedUsers(userId)
-        // users.map(user => {
-        //     socket.to(user).emit('removeUser', `⚡`);
-        // })
-        socket.broadcast.emit('removeUser')
+        socket.leave(userId)
+        const users = await getUserConnectedUsers(userId)
+        
+        Promise.all()
+            users.map(async (user) => {
+                io.sockets.to(user).emit('removeUser', `⚡`);
+            }
+        )
 
-        socket.disconnect()
     })
 
     socket.on("createComment", (data) => {
@@ -59,24 +62,16 @@ io.on("connection", (socket) => {
     })
     
     socket.on('createReply', (data) => {
-        console.log(data.taskId)
         io.sockets.in(data.taskId).emit('newReply',data);
-        // socket.join(data.task.projectId)
-        // console.log(data)
-        // socket.broadcast.to(data.task.projectId).emit('newReply',data);
     })
-    socket.on('createMember', (data) => {
-        socket.broadcast.emit('newMember', "From Server")
+
+    socket.on('createNotification',async (data) => {
+       Promise.all(
+        data.map(async id => io.sockets.in(id).emit('newNotification', id))
+       )
     })
-    socket.on('createMention',async (data) => {
-        socket.broadcast.emit('newMention', data = data.map(mentioned => (mentioned.userId)))
-    })
-    socket.on("createTask", (data) => {
-        console.log(`⚡: A New Task ${data}`);
-        socket.broadcast.emit('newTask', data)
-    })
+
     socket.on("joinRoom", (taskId) => {
-        console.log(`⚡: Someone Joined to Room `, taskId);
         socket.join(taskId)
         io.sockets.in(taskId).emit('connectToRoom', `⚡: Someone Joined to Task Room ${taskId}`);
 

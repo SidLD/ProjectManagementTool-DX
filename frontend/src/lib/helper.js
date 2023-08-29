@@ -55,7 +55,7 @@ export const formatDate = (date) => {
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun']
     return {
-        day: dayNames[localDate.getDay()],
+        day: dayNames[localDate.getDay() - 1],
         month: monthNames[localDate.getMonth()],
         year: localDate.getFullYear(),
         min: localDate.getMinutes(),

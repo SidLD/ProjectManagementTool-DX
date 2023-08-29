@@ -33,11 +33,11 @@ export const getUserConnectedUsers = async (userId) => {
         })
         let users = []
         projects.map(project => {
-            if(!users.includes(project.managerId)){
+            if(!(users.includes(project.managerId))){
                 users.push(project.managerId)
             }
             project.teamMembers.map(team => {
-                if(!users.includes(team.userId)){
+                if(!(users.includes(team.userId))){
                     users.push(team.userId)
                 }
             })

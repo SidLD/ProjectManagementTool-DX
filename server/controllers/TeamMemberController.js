@@ -108,7 +108,7 @@ export const getTeamMembers = async (req, res) => {
         const permissions = await getPermission(req.user.id, query.projectId)
         if(permissions.includes("VIEW-PROJECT")){
             let data = await prisma.teamMember.findMany({
-                where: {
+                where: {    
                     ...query
                 },
                 select:{

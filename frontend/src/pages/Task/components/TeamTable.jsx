@@ -42,9 +42,7 @@ export const TeamTable = () => {
                 },
                 projectId: task?.project?.id, 
               }
-            console.log(payload)
             const response = await getTeamMembers(payload)
-            console.log(response.data.data)
             setMembers(
               response.data.data.map(member => ({
                 key:member.user.id,

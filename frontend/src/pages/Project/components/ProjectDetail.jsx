@@ -36,7 +36,8 @@ export const ProjectDetail = () => {
         </div>
         <Tooltip className=' flex my-4 justify-center items-center' title={`${project.progress} %`} placement="right">
             <p className='text-left '>Progress</p>
-            <Progress className='dark:rounded-lg dark:border-2 dark:border-blue-500 w-3/4 ml-2 my-auto' percent={project.progress}/>
+            <Progress className='px-2 dark:rounded-lg dark:border-2 dark:border-blue-500 w-3/4 ml-2 my-auto' 
+            percent={(Math.round(project.progress  * 100) / 100).toFixed(0)}/>
         </Tooltip>
         </div>
     }

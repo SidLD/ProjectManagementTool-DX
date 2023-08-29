@@ -30,10 +30,8 @@ export const RecursiveComment = ({data, handleSelectComment, reply = false}) => 
     }
     fetchChilrenComment()
 
-    const handleNewComment =  (res) => {
-      console.log(res)
+    const handleNewComment =  () => {
       fetchChilrenComment()
-      // fetchNotification()s
     } 
     socket.on("newReply", handleNewComment)
 

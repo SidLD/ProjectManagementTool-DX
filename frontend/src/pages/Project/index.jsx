@@ -14,12 +14,7 @@ import {
   getTeamMembers, 
   updateProject, 
   updateTask} from '../../lib/api'
-  import io from "socket.io-client";
 import dayjs from 'dayjs'
-
-  //Need to add this before the component decleration
-  const socket = io(`${import.meta.env.VITE_API_URL}`,{
-           transports: ["websocket"] });
 
 export const Project = () => {
     const {projectId} = useParams()
@@ -265,20 +260,6 @@ export const Project = () => {
       fetchTeam()
       fetchTasks()
       setLoader(false)
-
-      const handleNewUser = async () => {
-        console.log("add User")
-        await fetchTeam()
-      }
-      socket.on("addUser", handleNewUser)
-      socket.off('newComment', handleNewUser)
-
-      const handleRemoveUser = async () => {
-        console.log("remove User")
-        await fetchTeam()
-      }
-      socket.on('removeUser', handleRemoveUser)
-      socket.off('removeUser', handleRemoveUser)
       
     },[projectId])
 
